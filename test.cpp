@@ -1,4 +1,4 @@
-#include "node.h"
+#include "directed_graph.h"
 #include <string>
 
 typedef struct t_str{
@@ -7,12 +7,6 @@ typedef struct t_str{
 } str;
 
 int main(){
-	node<std::string> n1("hello");
-	node<double> n2(2.4);
-	node<int> n(5);
-	str new_str;
-	new_str.x = 1;
-	new_str.y = 2;
-	node<str> n3(new_str);
+	directed_graph<std::string, int> graph("root node", 5);
 	return 0;
 }

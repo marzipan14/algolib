@@ -7,13 +7,13 @@ template <typename T>
 class node {
 private:
 	T value;
-	vector<node*> neighbours;
+	std::vector<node*> neighbours;
 public:
 	node(T);
 };
 
 template <typename T>
-node<T>::node(T new_value) {
+node<T>::node (T new_value) {
 	this->value = new_value;
 }
 

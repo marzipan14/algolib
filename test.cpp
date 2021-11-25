@@ -8,5 +8,6 @@ typedef struct t_str{
 
 int main(){
 	directed_graph<std::string, int> graph("root node", 5);
+	graph["root node"];
 	return 0;
 }

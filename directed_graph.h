@@ -12,12 +12,18 @@ private:
 	std::map<T, node<U> > map;
 public:
 	directed_graph(T, U);
+	U operator [] (const T&);
 };
 
 template <typename T, typename U>
 directed_graph<T, U>::directed_graph (T key, U value) {
 	node<U> root(value);
-	map.insert({key, root});
+	map[key] = root;
+}
+
+template <typename T, typename U>
+U directed_graph<T, U>::operator [] (const T &key) {
+	return map[key].getValue();
 }
 
 #endif

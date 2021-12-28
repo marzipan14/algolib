@@ -29,8 +29,13 @@ public:
 
 	// referencing non-existent node
 	value_type get_value(const label_type &key) const {
-		typename vertex_map::const_iterator it = V.find(key);
-		return it->second;
+		try{
+			typename vertex_map::const_iterator it = V.find(key);
+			return it->second;
+		}
+		catch(std::exception &ex){
+			printf("%s\n", ex.what());
+		}
 	}
 
 	// referencing existing node

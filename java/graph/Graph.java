@@ -8,10 +8,12 @@ import java.util.function.BiConsumer;
 public class Graph<K, V>{
 	private HashMap<K, V> vertices;
 	private HashMap<K, HashMap<K, Object> > edges;
+	private HashMap<K, HashMap<K, Object> > edgesInverted;
 	
 	private void init() {
 		vertices = new HashMap<K, V>();
 		edges = new HashMap<K, HashMap<K, Object> >();
+		edgesInverted = new HashMap<K, HashMap<K, Object> >();
 	}
 	
 	public Graph() {
@@ -28,6 +30,7 @@ public class Graph<K, V>{
 			throw new NoSuchLabelException();
 		}
 		edges.get(keyA).putIfAbsent(keyB, null);
+		edgesInverted.get(keyB).putIfAbsent(keyA, null);
 	}
 
 	public void attach(K keyA, K keyB, V value) throws NoSuchLabelException {
@@ -35,22 +38,79 @@ public class Graph<K, V>{
 		attach(keyA, keyB);
 	}
 
-	public boolean isAdjacent(K keyA, K keyB) throws NoSuchLabelException {
+	public boolean isAdjacent(K keyA, K keyB) {
 		if(!containsKey(keyA) || !containsKey(keyB)) {
-			throw new NoSuchLabelException();
+			return false;
 		}
 		return edges.get(keyA).containsKey(keyB);
 	}
 
 	public V put(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
+		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
 		return vertices.put(key, value);
 	}
 
 	public V putIfAbsent(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
+		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
 		return vertices.putIfAbsent(key, value);
 	}
+
+	public void detach(K keyA, K keyB) throws NoSuchLabelException {
+		if(!containsKey(keyA) || !containsKey(keyB)) {
+			throw new NoSuchLabelException();
+		}
+		edges.get(keyA).remove(keyB);
+	}
+
+	public void detachEdgesLeadingFrom(K key) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException();
+		}
+		edges.get(key).clear();	
+	}
+
+	public void detachEdgesLeadingTo(K key) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException();
+		}
+		Set<K> neighbours = edgesInverted.get(key).keySet();
+		for(K neighbour : neighbours) {
+			detach(neighbour, key);
+		}
+	}
+
+	public void detachAllEdges(K key) throws NoSuchLabelException {
+		detachEdgesLeadingTo(key);
+		detachEdgesLeadingFrom(key);
+	}
+
+	public V remove(K key) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException();
+		}
+		detachAllEdges(key);
+		edges.remove(key);
+		edgesInverted.remove(key);
+		return vertices.remove(key);
+	}
+
+	public boolean remove(K key, V value) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException();
+		}
+		if(vertices.get(key).equals(value)) {
+			remove(key);
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	//public Set<K> neighbourSet() {
+	//}
 
 	// HashMap-derived functions
 
@@ -88,6 +148,10 @@ public class Graph<K, V>{
 
 	public boolean replace(K key, V oldValue, V newValue) {
 		return vertices.replace(key, oldValue, newValue);
+	}
+
+	public int size() {
+		return vertices.size();
 	}
 
 	public Collection<V> values() {

@@ -1,7 +1,7 @@
 package graph;
 
 public class NoSuchLabelException extends RuntimeException {
-	public NoSuchLabelException() {
-		super("No such label has been defined in the graph.");
+	public NoSuchLabelException(String label) {
+		super("Label " + label + " has not been defined in the graph.");
 	}
 }

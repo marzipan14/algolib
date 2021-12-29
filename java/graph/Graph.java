@@ -27,8 +27,11 @@ public class Graph<K, V>{
 
 	// returns true if a new edge was added
 	public boolean attach(K keyA, K keyB) throws NoSuchLabelException {
-		if(!containsKey(keyA) || !containsKey(keyB)) {
-			throw new NoSuchLabelException();
+		if(!containsKey(keyA)) {
+			throw new NoSuchLabelException(keyA.toString());
+		}
+		if(!containsKey(keyB)) {
+			throw new NoSuchLabelException(keyB.toString());
 		}
 		return edges.get(keyA).putIfAbsent(keyB, new Object()) == null &&
 				edgesInverted.get(keyB).putIfAbsent(keyA, new Object()) == null;
@@ -39,8 +42,11 @@ public class Graph<K, V>{
 	// returns -1 if edge from keyB to keyA was created
 	// returns 2 if two edges were created
 	public short attachBoth(K keyA, K keyB) throws NoSuchLabelException {
-		if(!containsKey(keyA) || !containsKey(keyB)) {
-			throw new NoSuchLabelException();
+		if(!containsKey(keyA)) {
+			throw new NoSuchLabelException(keyA.toString());
+		}
+		if(!containsKey(keyB)) {
+			throw new NoSuchLabelException(keyB.toString());
 		}
 		if(attach(keyA, keyB)) {
 			if(attach(keyB, keyA)) return 2;
@@ -71,22 +77,25 @@ public class Graph<K, V>{
 	}
 
 	public void detach(K keyA, K keyB) throws NoSuchLabelException {
-		if(!containsKey(keyA) || !containsKey(keyB)) {
-			throw new NoSuchLabelException();
+		if(!containsKey(keyA)) {
+			throw new NoSuchLabelException(keyA.toString());
+		}
+		if(!containsKey(keyB)) {
+			throw new NoSuchLabelException(keyB.toString());
 		}
 		edges.get(keyA).remove(keyB);
 	}
 
 	public void detachEdgesLeadingFrom(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
-			throw new NoSuchLabelException();
+			throw new NoSuchLabelException(key.toString());
 		}
 		edges.get(key).clear();	
 	}
 
 	public void detachEdgesLeadingTo(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
-			throw new NoSuchLabelException();
+			throw new NoSuchLabelException(key.toString());
 		}
 		Set<K> neighbours = edgesInverted.get(key).keySet();
 		for(K neighbour : neighbours) {
@@ -101,7 +110,7 @@ public class Graph<K, V>{
 
 	public V remove(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
-			throw new NoSuchLabelException();
+			throw new NoSuchLabelException(key.toString());
 		}
 		detachAllEdges(key);
 		edges.remove(key);
@@ -111,7 +120,7 @@ public class Graph<K, V>{
 
 	public boolean remove(K key, V value) throws NoSuchLabelException {
 		if(!containsKey(key)) {
-			throw new NoSuchLabelException();
+			throw new NoSuchLabelException(key.toString());
 		}
 		if(vertices.get(key).equals(value)) {
 			remove(key);
@@ -126,6 +135,15 @@ public class Graph<K, V>{
 		edges.clear();
 		edgesInverted.clear();
 	}
+
+	//public void forEachNeighbour(K key, Consumer<? super K> action) throws NoSuchLabelException {
+	//	if(!containsKey(key)) {
+	//		throw new NoSuchLabelException(key.toString());
+	//	}
+	//	edges.get(key).forEach((neighbour, value) -> {
+	//		action.accept(neighbour);
+	//	});
+	//}
 
 	// HashMap-derived functions
 

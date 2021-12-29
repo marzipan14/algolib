@@ -25,17 +25,30 @@ public class Graph<K, V>{
 		putIfAbsent(key, value);
 	}
 
-	public void attach(K keyA, K keyB) throws NoSuchLabelException {
+	// returns true if a new edge was added
+	public boolean attach(K keyA, K keyB) throws NoSuchLabelException {
 		if(!containsKey(keyA) || !containsKey(keyB)) {
 			throw new NoSuchLabelException();
 		}
-		edges.get(keyA).putIfAbsent(keyB, null);
-		edgesInverted.get(keyB).putIfAbsent(keyA, null);
+		return edges.get(keyA).putIfAbsent(keyB, new Object()) == null &&
+				edgesInverted.get(keyB).putIfAbsent(keyA, new Object()) == null;
 	}
 
-	public void attach(K keyA, K keyB, V value) throws NoSuchLabelException {
-		putIfAbsent(keyB, value);
-		attach(keyA, keyB);
+	// returns 1 if edge from keyA to keyB was created
+	// returns 0 if no edge was created
+	// returns -1 if edge from keyB to keyA was created
+	// returns 2 if two edges were created
+	public short attachBoth(K keyA, K keyB) throws NoSuchLabelException {
+		if(!containsKey(keyA) || !containsKey(keyB)) {
+			throw new NoSuchLabelException();
+		}
+		if(attach(keyA, keyB)) {
+			if(attach(keyB, keyA)) return 2;
+			else return 1;
+		} else {
+			if(attach(keyB, keyA)) return -1;
+			else return 0;
+		}
 	}
 
 	public boolean isAdjacent(K keyA, K keyB) {

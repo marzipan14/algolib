@@ -157,6 +157,13 @@ public class Graph<K, V>{
 		});
 	}
 
+	public Set<K> neighbourSet(K key) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException(key.toString());
+		}
+		return edges.get(key).keySet();
+	}
+
 	// HashMap-derived functions
 
 	public boolean containsKey(K key) {

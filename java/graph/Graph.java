@@ -65,6 +65,17 @@ public class Graph<K, V>{
 		return edges.get(keyA).containsKey(keyB);
 	}
 
+	public boolean isUndirected() {
+		for(K vertex : edges.keySet()) {
+			for(K neighbour : edges.get(vertex).keySet()) {
+				if(!isAdjacent(neighbour, vertex)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 	public V put(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());

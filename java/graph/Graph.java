@@ -10,11 +10,15 @@ public class Graph<K, V>{
 	private HashMap<K, V> vertices;
 	private HashMap<K, HashMap<K, Object> > edges;
 	private HashMap<K, HashMap<K, Object> > edgesInverted;
+	private int visitTurn;
+	private HashMap<K, Integer> visitMap;
 	
 	private void init() {
 		vertices = new HashMap<K, V>();
 		edges = new HashMap<K, HashMap<K, Object> >();
 		edgesInverted = new HashMap<K, HashMap<K, Object> >();
+		visitTurn = 0;
+		visitMap = new HashMap<K, Integer>();
 	}
 	
 	public Graph() {
@@ -79,12 +83,14 @@ public class Graph<K, V>{
 	public V put(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
+		visitMap.putIfAbsent(key, 0);
 		return vertices.put(key, value);
 	}
 
 	public V putIfAbsent(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
+		visitMap.putIfAbsent(key, 0);
 		return vertices.putIfAbsent(key, value);
 	}
 
@@ -209,4 +215,46 @@ public class Graph<K, V>{
 	public Collection<V> values() {
 		return vertices.values();
 	}
+
+	// starting some algortithms
+
+	public void startNewTraversal() {
+		visitTurn++;
+	}
+
+	public void markAsVisited(K key) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException(key.toString());
+		}
+		visitMap.put(key, visitTurn);
+	}
+
+	public boolean hasBeenVisited(K key) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException(key.toString());
+		}
+		return visitMap.get(key) == visitTurn;
+	}
+
+	private void dfs(K key, K previous, BiConsumer<K, K> pre, BiConsumer<K, K> post) throws NoSuchLabelException {
+		markAsVisited(key);
+		if(pre != null)
+			pre.accept(key, previous);
+		forEachNeighbour(key, neighbour -> {
+			if(!hasBeenVisited(neighbour))
+				dfs(neighbour, key, pre, post);
+		});
+		if(post != null)
+			post.accept(key, previous);
+	}
+
+	public void dfs(K key, BiConsumer<K, K> pre, BiConsumer<K, K> post) throws NoSuchLabelException {
+		dfs(key, null, pre, post);
+	}
+
+	// --------------
+	//g.dfs(4, 
+	//	(key, previous) -> {},
+	//	(key, previous) -> {}
+	//);
 }

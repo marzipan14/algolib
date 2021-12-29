@@ -3,6 +3,7 @@ package graph;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.Collection;
+import java.util.function.Consumer;
 import java.util.function.BiConsumer;
 
 public class Graph<K, V>{
@@ -136,14 +137,14 @@ public class Graph<K, V>{
 		edgesInverted.clear();
 	}
 
-	//public void forEachNeighbour(K key, Consumer<? super K> action) throws NoSuchLabelException {
-	//	if(!containsKey(key)) {
-	//		throw new NoSuchLabelException(key.toString());
-	//	}
-	//	edges.get(key).forEach((neighbour, value) -> {
-	//		action.accept(neighbour);
-	//	});
-	//}
+	public void forEachNeighbour(K key, Consumer<? super K> action) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException(key.toString());
+		}
+		edges.get(key).forEach((neighbour, value) -> {
+			action.accept(neighbour);
+		});
+	}
 
 	// HashMap-derived functions
 

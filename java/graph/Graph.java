@@ -103,14 +103,16 @@ public class Graph<K, V>{
 		if(vertices.get(key).equals(value)) {
 			remove(key);
 			return true;
-		}
-		else {
+		} else {
 			return false;
 		}
 	}
 
-	//public Set<K> neighbourSet() {
-	//}
+	public void clear() {
+		vertices.clear();
+		edges.clear();
+		edgesInverted.clear();
+	}
 
 	// HashMap-derived functions
 

@@ -104,14 +104,14 @@ public class Graph<K, V>{
 		edges.get(keyA).remove(keyB);
 	}
 
-	public void detachEdgesLeadingFrom(K key) throws NoSuchLabelException {
+	private void detachEdgesLeadingFrom(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
 		edges.get(key).clear();	
 	}
 
-	public void detachEdgesLeadingTo(K key) throws NoSuchLabelException {
+	private void detachEdgesLeadingTo(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
@@ -121,7 +121,7 @@ public class Graph<K, V>{
 		}
 	}
 
-	public void detachAllEdges(K key) throws NoSuchLabelException {
+	private void detachAllEdges(K key) throws NoSuchLabelException {
 		detachEdgesLeadingTo(key);
 		detachEdgesLeadingFrom(key);
 	}
@@ -236,25 +236,33 @@ public class Graph<K, V>{
 		return visitMap.get(key) == visitTurn;
 	}
 
-	private void dfs(K key, K previous, BiConsumer<K, K> pre, BiConsumer<K, K> post) throws NoSuchLabelException {
+	private void dfs(K key, K previous, BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> preVisit, BiConsumer<K, K> postVisit, BiConsumer<K, K> post) throws NoSuchLabelException {
 		markAsVisited(key);
 		if(pre != null)
 			pre.accept(key, previous);
-		forEachNeighbour(key, neighbour -> {
-			if(!hasBeenVisited(neighbour))
-				dfs(neighbour, key, pre, post);
+		forEachNeighbour(key, (neighbour) -> {
+			if(!hasBeenVisited(neighbour)) {
+				if(preVisit != null)
+					preVisit.accept(key, neighbour);
+				dfs(neighbour, key, pre, visited, preVisit, postVisit, post);
+				if(postVisit != null)
+					postVisit.accept(key, neighbour);
+			} else if(visited != null) {
+					visited.accept(key, neighbour);
+			}
 		});
 		if(post != null)
 			post.accept(key, previous);
 	}
 
-	public void dfs(K key, BiConsumer<K, K> pre, BiConsumer<K, K> post) throws NoSuchLabelException {
-		dfs(key, null, pre, post);
+	public void dfs(K key, BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> preVisit, BiConsumer<K, K> postVisit, BiConsumer<K, K> post) throws NoSuchLabelException {
+		dfs(key, null, pre, visited, preVisit, postVisit, post);
 	}
 
-	// --------------
-	//g.dfs(4, 
-	//	(key, previous) -> {},
-	//	(key, previous) -> {}
-	//);
+	public void dfs(BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> preVisit, BiConsumer<K, K> postVisit, BiConsumer<K, K> post) throws NoSuchLabelException {
+		forEach((key, value) -> {
+			if(!hasBeenVisited(key))
+				dfs(key, null, pre, visited, preVisit, postVisit, post);
+		});
+	}
 }

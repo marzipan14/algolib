@@ -1,5 +1,6 @@
 package graph;
 
+import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.Collection;
@@ -70,8 +71,10 @@ public class Graph<K, V>{
 	}
 
 	public boolean isUndirected() {
-		for(K vertex : edges.keySet()) {
-			for(K neighbour : edges.get(vertex).keySet()) {
+		for(Map.Entry<K, HashMap<K, Object>> entry : edges.entrySet()) {
+			K vertex = entry.getKey();
+			for(Map.Entry<K, Object> entry2: edges.get(vertex).entrySet()) {
+				K neighbour = entry2.getKey();
 				if(!isAdjacent(neighbour, vertex)) {
 					return false;
 				}
@@ -115,8 +118,8 @@ public class Graph<K, V>{
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
-		Set<K> neighbours = edgesInverted.get(key).keySet();
-		for(K neighbour : neighbours) {
+		for(Map.Entry<K, Object> entry : edgesInverted.get(key).entrySet()) {
+			K neighbour = entry.getKey();
 			detach(neighbour, key);
 		}
 	}

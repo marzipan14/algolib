@@ -10,14 +10,12 @@ import java.util.function.BiConsumer;
 public class Graph<K, V> extends HashMap<K, V> {
 	private HashMap<K, HashMap<K, Object> > edges;
 	private HashMap<K, HashMap<K, Object> > edgesInverted;
-	private int visitTurn;
-	private HashMap<K, Integer> visitMap;
-	
+	private HashMap<K, Boolean> visitMap;
+
 	private void init() {
 		edges = new HashMap<K, HashMap<K, Object> >();
 		edgesInverted = new HashMap<K, HashMap<K, Object> >();
-		visitTurn = 0;
-		visitMap = new HashMap<K, Integer>();
+		visitMap = new HashMap<K, Boolean>();
 	}
 	
 	public Graph() {
@@ -87,7 +85,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public V put(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
-		visitMap.putIfAbsent(key, 0);
+		visitMap.putIfAbsent(key, false);
 		return super.put(key, value);
 	}
 
@@ -95,7 +93,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public V putIfAbsent(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
-		visitMap.putIfAbsent(key, 0);
+		visitMap.putIfAbsent(key, false);
 		return super.putIfAbsent(key, value);
 	}
 
@@ -139,6 +137,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 		detachAllEdges(key);
 		edges.remove(key);
 		edgesInverted.remove(key);
+		visitMap.remove(key);
 		return super.remove(key);
 	}
 
@@ -159,6 +158,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public void clear() {
 		edges.clear();
 		edgesInverted.clear();
+		visitMap.clear();
 		super.clear();
 	}
 
@@ -180,22 +180,31 @@ public class Graph<K, V> extends HashMap<K, V> {
 
 	// starting some algortithms
 
-	public void startNewTraversal() {
-		visitTurn++;
-	}
-
-	public void markAsVisited(K key) throws NoSuchLabelException {
+	private void markAsVisited(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
-		visitMap.put(key, visitTurn);
+		visitMap.put(key, true);
 	}
 
-	public boolean hasBeenVisited(K key) throws NoSuchLabelException {
+	private void markAsUnvisited(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
-		return visitMap.get(key) == visitTurn;
+		visitMap.put(key, false);
+	}
+
+	private boolean hasBeenVisited(K key) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException(key.toString());
+		}
+		return visitMap.get(key);
+	}
+
+	private void clearVisited() {
+		forEach((key, value) -> {
+			markAsUnvisited(key);
+		});
 	}
 
 	private void dfs(K key, K previous, BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> preVisit, BiConsumer<K, K> postVisit, BiConsumer<K, K> post) throws NoSuchLabelException {
@@ -218,10 +227,12 @@ public class Graph<K, V> extends HashMap<K, V> {
 	}
 
 	public void dfs(K key, BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> preVisit, BiConsumer<K, K> postVisit, BiConsumer<K, K> post) throws NoSuchLabelException {
+		clearVisited();
 		dfs(key, null, pre, visited, preVisit, postVisit, post);
 	}
 
 	public void dfs(BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> preVisit, BiConsumer<K, K> postVisit, BiConsumer<K, K> post) throws NoSuchLabelException {
+		clearVisited();
 		forEach((key, value) -> {
 			if(!hasBeenVisited(key))
 				dfs(key, null, pre, visited, preVisit, postVisit, post);

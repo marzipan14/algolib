@@ -239,7 +239,11 @@ public class Graph<K, V> extends HashMap<K, V> {
 		});
 	}
 
-	private K anyKey() {
+	public K anyKey() {
 		return entrySet().iterator().next().getKey();
+	}
+	
+	public boolean allVisited() {
+		return !visitMap.containsValue(false);
 	}
 }

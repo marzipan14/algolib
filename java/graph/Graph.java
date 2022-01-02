@@ -7,15 +7,13 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.BiConsumer;
 
-public class Graph<K, V>{
-	private HashMap<K, V> vertices;
+public class Graph<K, V> extends HashMap<K, V> {
 	private HashMap<K, HashMap<K, Object> > edges;
 	private HashMap<K, HashMap<K, Object> > edgesInverted;
 	private int visitTurn;
 	private HashMap<K, Integer> visitMap;
 	
 	private void init() {
-		vertices = new HashMap<K, V>();
 		edges = new HashMap<K, HashMap<K, Object> >();
 		edgesInverted = new HashMap<K, HashMap<K, Object> >();
 		visitTurn = 0;
@@ -23,10 +21,12 @@ public class Graph<K, V>{
 	}
 	
 	public Graph() {
+		super();
 		init();
 	}
 
 	public Graph(K key, V value) {
+		super();
 		init();
 		putIfAbsent(key, value);
 	}
@@ -83,21 +83,23 @@ public class Graph<K, V>{
 		return true;
 	}
 
+	@Override
 	public V put(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
 		visitMap.putIfAbsent(key, 0);
-		return vertices.put(key, value);
+		return super.put(key, value);
 	}
 
+	@Override
 	public V putIfAbsent(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
 		visitMap.putIfAbsent(key, 0);
-		return vertices.putIfAbsent(key, value);
+		return super.putIfAbsent(key, value);
 	}
 
-	public void detach(K keyA, K keyB) throws NoSuchLabelException {
+	public void detach(Object keyA, Object keyB) throws NoSuchLabelException {
 		if(!containsKey(keyA)) {
 			throw new NoSuchLabelException(keyA.toString());
 		}
@@ -107,14 +109,14 @@ public class Graph<K, V>{
 		edges.get(keyA).remove(keyB);
 	}
 
-	private void detachEdgesLeadingFrom(K key) throws NoSuchLabelException {
+	private void detachEdgesLeadingFrom(Object key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
 		edges.get(key).clear();	
 	}
 
-	private void detachEdgesLeadingTo(K key) throws NoSuchLabelException {
+	private void detachEdgesLeadingTo(Object key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
@@ -124,26 +126,28 @@ public class Graph<K, V>{
 		}
 	}
 
-	private void detachAllEdges(K key) throws NoSuchLabelException {
+	private void detachAllEdges(Object key) throws NoSuchLabelException {
 		detachEdgesLeadingTo(key);
 		detachEdgesLeadingFrom(key);
 	}
 
-	public V remove(K key) throws NoSuchLabelException {
+	@Override
+	public V remove(Object key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
 		detachAllEdges(key);
 		edges.remove(key);
 		edgesInverted.remove(key);
-		return vertices.remove(key);
+		return super.remove(key);
 	}
 
-	public boolean remove(K key, V value) throws NoSuchLabelException {
+	@Override
+	public boolean remove(Object key, Object value) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
-		if(vertices.get(key).equals(value)) {
+		if(get(key).equals(value)) {
 			remove(key);
 			return true;
 		} else {
@@ -151,10 +155,11 @@ public class Graph<K, V>{
 		}
 	}
 
+	@Override
 	public void clear() {
-		vertices.clear();
 		edges.clear();
 		edgesInverted.clear();
+		super.clear();
 	}
 
 	public void forEachNeighbour(K key, Consumer<? super K> action) throws NoSuchLabelException {
@@ -171,52 +176,6 @@ public class Graph<K, V>{
 			throw new NoSuchLabelException(key.toString());
 		}
 		return edges.get(key).keySet();
-	}
-
-	// HashMap-derived functions
-
-	public boolean containsKey(K key) {
-		return vertices.containsKey(key);
-	}
-
-	public boolean containsValue(V value) {
-		return vertices.containsValue(value);
-	}
-
-	public void forEach(BiConsumer<? super K, ? super V> action) {
-		vertices.forEach(action);
-	}
-
-	public V get(K key) {
-		return vertices.get(key);
-	}
-
-	public V getOrDefault(K key, V value) {
-		return vertices.getOrDefault(key, value);
-	}
-
-	public boolean isEmpty() {
-		return vertices.isEmpty();
-	}
-
-	public Set<K> keySet() {
-		return vertices.keySet();
-	}
-
-	public V replace(K key, V value) {
-		return vertices.replace(key, value);
-	}
-
-	public boolean replace(K key, V oldValue, V newValue) {
-		return vertices.replace(key, oldValue, newValue);
-	}
-
-	public int size() {
-		return vertices.size();
-	}
-
-	public Collection<V> values() {
-		return vertices.values();
 	}
 
 	// starting some algortithms
@@ -267,5 +226,9 @@ public class Graph<K, V>{
 			if(!hasBeenVisited(key))
 				dfs(key, null, pre, visited, preVisit, postVisit, post);
 		});
+	}
+
+	private K anyKey() {
+		return entrySet().iterator().next().getKey();
 	}
 }

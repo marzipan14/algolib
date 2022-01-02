@@ -1,7 +1,9 @@
 package graph;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Collection;
 import java.util.function.Consumer;
@@ -11,6 +13,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	private HashMap<K, HashMap<K, Object> > edges;
 	private HashMap<K, HashMap<K, Object> > edgesInverted;
 	private HashMap<K, Boolean> visitMap;
+	private int resultFlag;
 
 	private void init() {
 		edges = new HashMap<K, HashMap<K, Object> >();
@@ -66,19 +69,6 @@ public class Graph<K, V> extends HashMap<K, V> {
 			return false;
 		}
 		return edges.get(keyA).containsKey(keyB);
-	}
-
-	public boolean isUndirected() {
-		for(Map.Entry<K, HashMap<K, Object>> entry : edges.entrySet()) {
-			K vertex = entry.getKey();
-			for(Map.Entry<K, Object> entry2: edges.get(vertex).entrySet()) {
-				K neighbour = entry2.getKey();
-				if(!isAdjacent(neighbour, vertex)) {
-					return false;
-				}
-			}
-		}
-		return true;
 	}
 
 	@Override
@@ -246,4 +236,36 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public boolean allVisited() {
 		return !visitMap.containsValue(false);
 	}
+
+	public void setResultFlag(int value) {
+		resultFlag = value;
+	}
+
+	public int getResultFlag() {
+		return resultFlag;
+	}
+
+	//public void bfs(K start, Consumer<K> pre, BiConsumer<K, K> in, BiConsumer<K, K> visited, Consumer<K> post) throws NoSuchLabelException {
+	//	clearVisited();
+	//	markAsVisited(start);
+	//	Queue<K> queue = new Queue<K>();
+	//	queue.add(start);
+	//	while(!queue.isEmpty()) {
+	//		K key = queue.remove();
+	//		if(pre != null)
+	//			pre.accept(key);
+	//		forEachNeighbour(key, (neighbour) -> {
+	//			if(!hasBeenVisited(neighbour)) {
+	//				queue.add(neighbour);
+	//				markAsVisited(neighbour);
+	//				if(in != null)
+	//					in.accept(key, neighbour);
+	//			} else if(visited != null) {
+	//				visited.accept(key, neighbour);
+	//			}
+	//		});
+	//		if(post != null)
+	//			post.accept(key);
+	//	}
+	//}
 }

@@ -3,7 +3,7 @@ package graph;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Queue;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.Collection;
 import java.util.function.Consumer;
@@ -245,27 +245,35 @@ public class Graph<K, V> extends HashMap<K, V> {
 		return resultFlag;
 	}
 
-	//public void bfs(K start, Consumer<K> pre, BiConsumer<K, K> in, BiConsumer<K, K> visited, Consumer<K> post) throws NoSuchLabelException {
-	//	clearVisited();
-	//	markAsVisited(start);
-	//	Queue<K> queue = new Queue<K>();
-	//	queue.add(start);
-	//	while(!queue.isEmpty()) {
-	//		K key = queue.remove();
-	//		if(pre != null)
-	//			pre.accept(key);
-	//		forEachNeighbour(key, (neighbour) -> {
-	//			if(!hasBeenVisited(neighbour)) {
-	//				queue.add(neighbour);
-	//				markAsVisited(neighbour);
-	//				if(in != null)
-	//					in.accept(key, neighbour);
-	//			} else if(visited != null) {
-	//				visited.accept(key, neighbour);
-	//			}
-	//		});
-	//		if(post != null)
-	//			post.accept(key);
-	//	}
-	//}
+	// you may want to clearVisited() before using this function
+	public void bfs(K start, Consumer<K> pre, BiConsumer<K, K> notVisited, BiConsumer<K, K> visited, Consumer<K> post) throws NoSuchLabelException {
+		LinkedList<K> queue = new LinkedList<K>();
+		queue.add(start);
+		markAsVisited(start);
+		while(!queue.isEmpty()) {
+			K key = queue.remove();
+			if(pre != null)
+				pre.accept(key);
+			forEachNeighbour(key, (neighbour) -> {
+				if(!hasBeenVisited(neighbour)) {
+					queue.add(neighbour);
+					markAsVisited(neighbour);
+					if(notVisited != null)
+						notVisited.accept(key, neighbour);
+				} else if(visited != null) {
+					visited.accept(key, neighbour);
+				}
+			});
+			if(post != null)
+				post.accept(key);
+		}
+	}
+
+	public void bfs(Consumer<K> pre, BiConsumer<K, K> notVisited, BiConsumer<K, K> visited, Consumer<K> post) throws NoSuchLabelException {
+		clearVisited();
+		forEach((key, value) -> {
+			if(!hasBeenVisited(key))
+				bfs(key, pre, notVisited, visited, post);
+		});
+	}
 }

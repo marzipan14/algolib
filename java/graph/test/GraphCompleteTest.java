@@ -3,12 +3,12 @@ import graph.Graph;
 
 public class GraphCompleteTest {
 	public <K, V> boolean check(Graph<K, V> g) {
-		g.setResultFlag(1);
+		g.addStatusFlag("complete", true);
 		g.forEach((key, value) -> {
 			if(g.neighbourSet(key).size() < g.size()-1) {
-				g.setResultFlag(0);
+				g.setStatusFlag("complete", false);
 			}
 		});
-	return g.getResultFlag() == 1;
+	return (Boolean)g.removeStatusFlag("complete");
 	}
 }

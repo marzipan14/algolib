@@ -13,12 +13,13 @@ public class Graph<K, V> extends HashMap<K, V> {
 	private HashMap<K, HashMap<K, Object> > edges;
 	private HashMap<K, HashMap<K, Object> > edgesInverted;
 	private HashMap<K, Boolean> visitMap;
-	private int resultFlag;
+	private HashMap<String, Object> statusFlags;
 
 	private void init() {
 		edges = new HashMap<K, HashMap<K, Object> >();
 		edgesInverted = new HashMap<K, HashMap<K, Object> >();
 		visitMap = new HashMap<K, Boolean>();
+		statusFlags = new HashMap<String, Object>();
 	}
 	
 	public Graph() {
@@ -237,14 +238,6 @@ public class Graph<K, V> extends HashMap<K, V> {
 		return !visitMap.containsValue(false);
 	}
 
-	public final void setResultFlag(int value) {
-		resultFlag = value;
-	}
-
-	public final int getResultFlag() {
-		return resultFlag;
-	}
-
 	// you may want to clearVisited() before using this function
 	public void bfs(K start, Consumer<K> pre, BiConsumer<K, K> notVisited, BiConsumer<K, K> visited, Consumer<K> post) throws NoSuchLabelException {
 		LinkedList<K> queue = new LinkedList<K>();
@@ -275,5 +268,21 @@ public class Graph<K, V> extends HashMap<K, V> {
 			if(!hasBeenVisited(key))
 				bfs(key, pre, notVisited, visited, post);
 		});
+	}
+
+	public Object addStatusFlag(String key, Object value) {
+		return statusFlags.putIfAbsent(key, value);
+	}
+
+	public Object setStatusFlag(String key, Object value) {
+		return statusFlags.put(key, value);
+	}
+
+	public Object getStatusFlag(String key) {
+		return statusFlags.get(key);
+	}
+
+	public Object removeStatusFlag(String key) {
+		return statusFlags.remove(key);
 	}
 }

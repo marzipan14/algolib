@@ -171,30 +171,28 @@ public class Graph<K, V> extends HashMap<K, V> {
 		return edges.get(key).keySet();
 	}
 
-	// starting some algortithms
-
-	private final void markAsVisited(K key) throws NoSuchLabelException {
+	public final void markAsVisited(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
 		visitMap.put(key, true);
 	}
 
-	private final void markAsUnvisited(K key) throws NoSuchLabelException {
+	public final void markAsUnvisited(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
 		visitMap.put(key, false);
 	}
 
-	private final boolean hasBeenVisited(K key) throws NoSuchLabelException {
+	public final boolean hasBeenVisited(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
 		return visitMap.get(key);
 	}
 
-	private final void clearVisited() {
+	public final void clearVisited() {
 		forEach((key, value) -> {
 			markAsUnvisited(key);
 		});
@@ -220,7 +218,6 @@ public class Graph<K, V> extends HashMap<K, V> {
 	}
 
 	public void dfs(K key, BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> preVisit, BiConsumer<K, K> postVisit, BiConsumer<K, K> post) throws NoSuchLabelException {
-		clearVisited();
 		dfs(key, null, pre, visited, preVisit, postVisit, post);
 	}
 
@@ -230,6 +227,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 			if(!hasBeenVisited(key))
 				dfs(key, null, pre, visited, preVisit, postVisit, post);
 		});
+		clearVisited();
 	}
 
 	public K anyKey() {
@@ -270,6 +268,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 			if(!hasBeenVisited(key))
 				bfs(key, pre, notVisited, visited, post);
 		});
+		clearVisited();
 	}
 
 	public Object addStatusFlag(String key, Object value) {

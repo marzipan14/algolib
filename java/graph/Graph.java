@@ -41,6 +41,8 @@ public class Graph<K, V> extends HashMap<K, V> {
 		if(!containsKey(keyB)) {
 			throw new NoSuchLabelException(keyB.toString());
 		}
+		// no self-edges
+		if(keyA.equals(keyB)) return false;
 		return edges.get(keyA).putIfAbsent(keyB, new Object()) == null &&
 				edgesInverted.get(keyB).putIfAbsent(keyA, new Object()) == null;
 	}

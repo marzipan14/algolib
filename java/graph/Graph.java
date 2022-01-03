@@ -64,7 +64,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 		}
 	}
 
-	public boolean isAdjacent(K keyA, K keyB) {
+	public final boolean isAdjacent(K keyA, K keyB) {
 		if(!containsKey(keyA) || !containsKey(keyB)) {
 			return false;
 		}
@@ -152,7 +152,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 		super.clear();
 	}
 
-	public void forEachNeighbour(K key, Consumer<? super K> action) throws NoSuchLabelException {
+	public final void forEachNeighbour(K key, Consumer<? super K> action) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
@@ -161,7 +161,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 		});
 	}
 
-	public Set<K> neighbourSet(K key) throws NoSuchLabelException {
+	public final Set<K> neighbourSet(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
@@ -170,28 +170,28 @@ public class Graph<K, V> extends HashMap<K, V> {
 
 	// starting some algortithms
 
-	private void markAsVisited(K key) throws NoSuchLabelException {
+	private final void markAsVisited(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
 		visitMap.put(key, true);
 	}
 
-	private void markAsUnvisited(K key) throws NoSuchLabelException {
+	private final void markAsUnvisited(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
 		visitMap.put(key, false);
 	}
 
-	private boolean hasBeenVisited(K key) throws NoSuchLabelException {
+	private final boolean hasBeenVisited(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
 		return visitMap.get(key);
 	}
 
-	private void clearVisited() {
+	private final void clearVisited() {
 		forEach((key, value) -> {
 			markAsUnvisited(key);
 		});
@@ -233,15 +233,15 @@ public class Graph<K, V> extends HashMap<K, V> {
 		return entrySet().iterator().next().getKey();
 	}
 	
-	public boolean allVisited() {
+	public final boolean allVisited() {
 		return !visitMap.containsValue(false);
 	}
 
-	public void setResultFlag(int value) {
+	public final void setResultFlag(int value) {
 		resultFlag = value;
 	}
 
-	public int getResultFlag() {
+	public final int getResultFlag() {
 		return resultFlag;
 	}
 

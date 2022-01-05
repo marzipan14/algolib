@@ -3,14 +3,16 @@ import graph.Graph;
 
 public class GraphUndirectedTest {
 	public <K, V> boolean check(Graph<K, V> g) {
-		g.addStatusFlag("undirected", true);
+		g.addGFlag("is_undirected", true);
 		g.forEach((key, value) -> {
 			g.forEachNeighbour(key, (neighbour) -> {
 				if(!g.isAdjacent(neighbour, key)) {
-					g.setStatusFlag("undirected", false);
+					g.setGFlag("is_undirected", false);
 				}
 			});
 		});
-		return (Boolean)g.removeStatusFlag("undirected");
+		boolean result = (boolean)g.getGFlag("is_undirected");
+		g.removeGFlag("is_undirected");
+		return result;
 	}
 }

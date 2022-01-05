@@ -14,12 +14,15 @@ public class Graph<K, V> extends HashMap<K, V> {
 	private HashMap<K, HashMap<K, Object> > edgesInverted;
 
 	private HashMap<K, HashMap<String, Object> > vFlags;
+	private HashMap<String, Object> defaultVFlags;
 	private HashMap<String, Object> gFlags;
 
 	private void init() {
 		edges = new HashMap<K, HashMap<K, Object> >();
 		edgesInverted = new HashMap<K, HashMap<K, Object> >();
 		vFlags = new HashMap<K, HashMap<String, Object> >();
+		defaultVFlags = new HashMap<String, Object>();
+		addVFlag("__visited", false);
 		gFlags = new HashMap<String, Object>();
 	}
 	
@@ -79,8 +82,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public V put(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
-		vFlags.putIfAbsent(key, new HashMap<String, Object>());
-		addVFlag("__visited", false);
+		vFlags.putIfAbsent(key, new HashMap<String, Object>(defaultVFlags));
 		return super.put(key, value);
 	}
 
@@ -88,8 +90,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public V putIfAbsent(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
-		vFlags.putIfAbsent(key, new HashMap<String, Object>());
-		addVFlag("__visited", false);
+		vFlags.putIfAbsent(key, new HashMap<String, Object>(defaultVFlags));
 		return super.putIfAbsent(key, value);
 	}
 
@@ -179,14 +180,14 @@ public class Graph<K, V> extends HashMap<K, V> {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
-		setVFlagPrivate(key, "__visited", true);
+		setVFlagRestricted(key, "__visited", true);
 	}
 
 	private final void markAsUnvisited(K key) throws NoSuchLabelException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
-		setVFlagPrivate(key, "__visited", false);
+		setVFlagRestricted(key, "__visited", false);
 	}
 
 	public final boolean hasBeenVisited(K key) throws NoSuchLabelException {
@@ -284,9 +285,10 @@ public class Graph<K, V> extends HashMap<K, V> {
 // ==========================================================
 
 	// add a new vFlag with default value
-	public void addVFlag(String name, Object def) {
+	public void addVFlag(String flag, Object def) {
+		defaultVFlags.put(flag, def);
 		vFlags.forEach((key, value) -> {
-			value.put(name, def);
+			value.put(flag, def);
 		});
 	}
 
@@ -299,35 +301,35 @@ public class Graph<K, V> extends HashMap<K, V> {
 		});
 	}
 
-	private void setVFlagPrivate(K key, String flag, Object value) throws NoSuchLabelException, IncorrectFlagException {
+	private void setVFlagRestricted(K key, String flag, Object value) throws NoSuchLabelException, IncorrectFlagException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
 		vFlags.get(key).put(flag, value);
 	}
 
-	public void setVFlag(K key, String flag, Object value) throw IncorrectFlagException {
+	public void setVFlag(K key, String flag, Object value) throws IncorrectFlagException {
 		if(!vFlags.get(key).containsKey(flag) || flag.equals("__visited")) {
 			throw new IncorrectFlagException(flag);
 		}
-		setVFlagPrivate(key, flag, value);
+		setVFlagRestricted(key, flag, value);
 	}
 
 	public Object getVFlag(K key, String flag) throws NoSuchLabelException, IncorrectFlagException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
-		if(!vFlags.get(key).contains(flag) || flag.equals("__visited")) {
+		if(!vFlags.get(key).containsKey(flag)) {
 			throw new IncorrectFlagException(flag);
 		}
 		return vFlags.get(key).get(flag);
 	}
 
 	public void clearVFlags() {
-		forEach((key, value) -> {
-			value.forEach((key2, value2) -> {
-				if(!key2.equals("__visited"))
-					value.remove(key2);
+		vFlags.forEach((key, flags) -> {
+			flags.forEach((flag, value) -> {
+				if(!flag.equals("__visited"))
+					flags.remove(flag);
 			});
 		});
 	}
@@ -337,7 +339,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	}
 
 	public void removeGFlag(String flag) throws IncorrectFlagException {
-		if(!gFlags.contains(flag)) {
+		if(!gFlags.containsKey(flag)) {
 			throw new IncorrectFlagException(flag);
 		}
 		gFlags.remove(flag);

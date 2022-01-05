@@ -12,14 +12,30 @@ import java.util.function.BiConsumer;
 public class Graph<K, V> extends HashMap<K, V> {
 	private HashMap<K, HashMap<K, Object> > edges;
 	private HashMap<K, HashMap<K, Object> > edgesInverted;
-	private HashMap<K, Boolean> visitMap;
-	private HashMap<String, Object> statusFlags;
+	
+	final private int MAX_VFLAGS = 10;
+	final private int MAX_GFLAGS = 10;
+
+	final private int VISITED = 0;
+
+	private HashMap<K, Object[]> vFlags;
+	private Object[] gFlags = {
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+	};
 
 	private void init() {
 		edges = new HashMap<K, HashMap<K, Object> >();
 		edgesInverted = new HashMap<K, HashMap<K, Object> >();
-		visitMap = new HashMap<K, Boolean>();
-		statusFlags = new HashMap<String, Object>();
+		vFlags = new HashMap<K, Object[]>();
 	}
 	
 	public Graph() {
@@ -78,7 +94,10 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public V put(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
-		visitMap.putIfAbsent(key, false);
+		Object[] emptyVFlagsCell = {
+			false,null,null,null,null,null,null,null,null,null
+		};
+		vFlags.putIfAbsent(key, emptyVFlagsCell);
 		return super.put(key, value);
 	}
 
@@ -86,7 +105,10 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public V putIfAbsent(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
-		visitMap.putIfAbsent(key, false);
+		Object[] emptyVFlagsCell = {
+			false,null,null,null,null,null,null,null,null,null
+		};
+		vFlags.putIfAbsent(key, emptyVFlagsCell);
 		return super.putIfAbsent(key, value);
 	}
 
@@ -130,7 +152,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 		detachAllEdges(key);
 		edges.remove(key);
 		edgesInverted.remove(key);
-		visitMap.remove(key);
+		vFlags.remove(key);
 		return super.remove(key);
 	}
 
@@ -151,7 +173,9 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public void clear() {
 		edges.clear();
 		edgesInverted.clear();
-		visitMap.clear();
+		vFlags.clear();
+		for(int i = 0; i < MAX_GFLAGS; i++)
+			gFlags[i] = null;
 		super.clear();
 	}
 
@@ -172,25 +196,26 @@ public class Graph<K, V> extends HashMap<K, V> {
 	}
 
 	public final void markAsVisited(K key) throws NoSuchLabelException {
-		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
-		}
-		visitMap.put(key, true);
+		setVFlag(key, VISITED, true);
 	}
 
 	public final void markAsUnvisited(K key) throws NoSuchLabelException {
-		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
-		}
-		visitMap.put(key, false);
+		setVFlag(key, VISITED, false);
 	}
 
 	public final boolean hasBeenVisited(K key) throws NoSuchLabelException {
-		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
-		}
-		return visitMap.get(key);
+		return (boolean)getVFlag(key, VISITED);
 	}
+
+	//public final boolean allVisited() {
+	//	final int ALL_VISITED = 0;
+	//	setGFlag(ALL_VISITED, true);
+	//	forEach((key, value) -> {
+	//		if(!hasBeenVisited(key))
+	//			setGFlag(ALL_VISITED, false);
+	//	});
+	//	return (boolean)getGFlag(ALL_VISITED);
+	//}
 
 	public final void clearVisited() {
 		forEach((key, value) -> {
@@ -233,10 +258,6 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public K anyKey() {
 		return entrySet().iterator().next().getKey();
 	}
-	
-	public final boolean allVisited() {
-		return !visitMap.containsValue(false);
-	}
 
 	// you may want to clearVisited() before using this function
 	public void bfs(K start, Consumer<K> pre, BiConsumer<K, K> notVisited, BiConsumer<K, K> visited, Consumer<K> post) throws NoSuchLabelException {
@@ -271,19 +292,25 @@ public class Graph<K, V> extends HashMap<K, V> {
 		clearVisited();
 	}
 
-	public Object addStatusFlag(String key, Object value) {
-		return statusFlags.putIfAbsent(key, value);
+	public void setVFlag(K key, int flag, Object value) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException(key.toString());
+		}
+		(vFlags.get(key))[flag] = value;
 	}
 
-	public Object setStatusFlag(String key, Object value) {
-		return statusFlags.put(key, value);
+	public Object getVFlag(K key, int flag) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException(key.toString());
+		}
+		return (vFlags.get(key))[flag];
 	}
 
-	public Object getStatusFlag(String key) {
-		return statusFlags.get(key);
+	public void setGFlag(int flag, Object value) {
+		gFlags[flag] = value;
 	}
 
-	public Object removeStatusFlag(String key) {
-		return statusFlags.remove(key);
+	public Object getGFlag(int flag) {
+		return gFlags[flag];
 	}
 }

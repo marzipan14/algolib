@@ -12,30 +12,15 @@ import java.util.function.BiConsumer;
 public class Graph<K, V> extends HashMap<K, V> {
 	private HashMap<K, HashMap<K, Object> > edges;
 	private HashMap<K, HashMap<K, Object> > edgesInverted;
-	
-	final private int MAX_VFLAGS = 10;
-	final private int MAX_GFLAGS = 10;
 
-	final private int VISITED = 0;
-
-	private HashMap<K, Object[]> vFlags;
-	private Object[] gFlags = {
-		null,
-		null,
-		null,
-		null,
-		null,
-		null,
-		null,
-		null,
-		null,
-		null,
-	};
+	private HashMap<K, HashMap<String, Object> > vFlags;
+	private HashMap<String, Object> gFlags;
 
 	private void init() {
 		edges = new HashMap<K, HashMap<K, Object> >();
 		edgesInverted = new HashMap<K, HashMap<K, Object> >();
-		vFlags = new HashMap<K, Object[]>();
+		vFlags = new HashMap<K, HashMap<String, Object> >();
+		gFlags = new HashMap<String, Object>();
 	}
 	
 	public Graph() {
@@ -94,10 +79,8 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public V put(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
-		Object[] emptyVFlagsCell = {
-			false,null,null,null,null,null,null,null,null,null
-		};
-		vFlags.putIfAbsent(key, emptyVFlagsCell);
+		vFlags.putIfAbsent(key, new HashMap<String, Object>());
+		addVFlag("__visited", false);
 		return super.put(key, value);
 	}
 
@@ -105,10 +88,8 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public V putIfAbsent(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
-		Object[] emptyVFlagsCell = {
-			false,null,null,null,null,null,null,null,null,null
-		};
-		vFlags.putIfAbsent(key, emptyVFlagsCell);
+		vFlags.putIfAbsent(key, new HashMap<String, Object>());
+		addVFlag("__visited", false);
 		return super.putIfAbsent(key, value);
 	}
 
@@ -173,9 +154,8 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public void clear() {
 		edges.clear();
 		edgesInverted.clear();
-		vFlags.clear();
-		for(int i = 0; i < MAX_GFLAGS; i++)
-			gFlags[i] = null;
+		clearVFlags();
+		clearGFlags();
 		super.clear();
 	}
 
@@ -195,27 +175,34 @@ public class Graph<K, V> extends HashMap<K, V> {
 		return edges.get(key).keySet();
 	}
 
-	public final void markAsVisited(K key) throws NoSuchLabelException {
-		setVFlag(key, VISITED, true);
+	private final void markAsVisited(K key) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException(key.toString());
+		}
+		setVFlagPrivate(key, "__visited", true);
 	}
 
-	public final void markAsUnvisited(K key) throws NoSuchLabelException {
-		setVFlag(key, VISITED, false);
+	private final void markAsUnvisited(K key) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException(key.toString());
+		}
+		setVFlagPrivate(key, "__visited", false);
 	}
 
 	public final boolean hasBeenVisited(K key) throws NoSuchLabelException {
-		return (boolean)getVFlag(key, VISITED);
+		return (boolean)getVFlag(key, "__visited");
 	}
 
-	//public final boolean allVisited() {
-	//	final int ALL_VISITED = 0;
-	//	setGFlag(ALL_VISITED, true);
-	//	forEach((key, value) -> {
-	//		if(!hasBeenVisited(key))
-	//			setGFlag(ALL_VISITED, false);
-	//	});
-	//	return (boolean)getGFlag(ALL_VISITED);
-	//}
+	public final boolean allVisited() {
+		addGFlag("__all_visited", true);
+		forEach((key, value) -> {
+			if(!hasBeenVisited(key))
+				setGFlag("__all_visited", false);
+		});
+		boolean result = (boolean)getGFlag("__all_visited");
+		removeGFlag("__all_visited");
+		return result;
+	}
 
 	public final void clearVisited() {
 		forEach((key, value) -> {
@@ -292,25 +279,85 @@ public class Graph<K, V> extends HashMap<K, V> {
 		clearVisited();
 	}
 
-	public void setVFlag(K key, int flag, Object value) throws NoSuchLabelException {
+// ==========================================================
+// FLAGS
+// ==========================================================
+
+	// add a new vFlag with default value
+	public void addVFlag(String name, Object def) {
+		vFlags.forEach((key, value) -> {
+			value.put(name, def);
+		});
+	}
+
+	public void removeVFlag(String flag) throws IncorrectFlagException {
+		if(flag.equals("__visited")) {
+			throw new IncorrectFlagException(flag);
+		}
+		vFlags.forEach((key, value) -> {
+			value.remove(flag);	
+		});
+	}
+
+	private void setVFlagPrivate(K key, String flag, Object value) throws NoSuchLabelException, IncorrectFlagException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
-		(vFlags.get(key))[flag] = value;
+		vFlags.get(key).put(flag, value);
 	}
 
-	public Object getVFlag(K key, int flag) throws NoSuchLabelException {
+	public void setVFlag(K key, String flag, Object value) throw IncorrectFlagException {
+		if(!vFlags.get(key).containsKey(flag) || flag.equals("__visited")) {
+			throw new IncorrectFlagException(flag);
+		}
+		setVFlagPrivate(key, flag, value);
+	}
+
+	public Object getVFlag(K key, String flag) throws NoSuchLabelException, IncorrectFlagException {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
-		return (vFlags.get(key))[flag];
+		if(!vFlags.get(key).contains(flag) || flag.equals("__visited")) {
+			throw new IncorrectFlagException(flag);
+		}
+		return vFlags.get(key).get(flag);
 	}
 
-	public void setGFlag(int flag, Object value) {
-		gFlags[flag] = value;
+	public void clearVFlags() {
+		forEach((key, value) -> {
+			value.forEach((key2, value2) -> {
+				if(!key2.equals("__visited"))
+					value.remove(key2);
+			});
+		});
 	}
 
-	public Object getGFlag(int flag) {
-		return gFlags[flag];
+	public void addGFlag(String flag, Object def) {
+		gFlags.put(flag, def);
+	}
+
+	public void removeGFlag(String flag) throws IncorrectFlagException {
+		if(!gFlags.contains(flag)) {
+			throw new IncorrectFlagException(flag);
+		}
+		gFlags.remove(flag);
+	}
+
+	public void setGFlag(String flag, Object value) throws IncorrectFlagException {
+		if(!gFlags.containsKey(flag) || flag.equals("__visited")) {
+			throw new IncorrectFlagException(flag);
+		}
+		gFlags.put(flag, value);
+	}
+
+	public Object getGFlag(String flag) throws IncorrectFlagException {
+		if(!gFlags.containsKey(flag) || flag.equals("__visited")) {
+			throw new IncorrectFlagException(flag);
+		}
+		return gFlags.get(flag);
+	}
+
+	public void clearGFlags() {
+		gFlags.clear();
 	}
 }

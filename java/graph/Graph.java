@@ -197,12 +197,11 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public final boolean allVisited() {
 		addGFlag("__all_visited", true);
 		forEach((key, value) -> {
-			if(!hasBeenVisited(key))
+			if(!hasBeenVisited(key)){
 				setGFlag("__all_visited", false);
+			}
 		});
-		boolean result = (boolean)getGFlag("__all_visited");
-		removeGFlag("__all_visited");
-		return result;
+		return (boolean)removeGFlag("__all_visited");
 	}
 
 	public final void clearVisited() {
@@ -338,11 +337,11 @@ public class Graph<K, V> extends HashMap<K, V> {
 		gFlags.put(flag, def);
 	}
 
-	public void removeGFlag(String flag) throws IncorrectFlagException {
+	public Object removeGFlag(String flag) throws IncorrectFlagException {
 		if(!gFlags.containsKey(flag)) {
 			throw new IncorrectFlagException(flag);
 		}
-		gFlags.remove(flag);
+		return gFlags.remove(flag);
 	}
 
 	public void setGFlag(String flag, Object value) throws IncorrectFlagException {

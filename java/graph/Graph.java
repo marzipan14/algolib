@@ -62,11 +62,11 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* @throws NoSuchLabelException if the vertex does not exist
 	* in the graph.
 	*/
-	private void ensureContainsKey(Object key) throws NoSuchLabelException {
-		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
-		}
-	}
+	//private void ensureContainsKey(Object key) throws NoSuchLabelException {
+	//	if(!containsKey(key)) {
+	//		throw new NoSuchLabelException(key.toString());
+	//	}
+	//}
 
 	/**
 	* Adds a new vertex to the graph; if the vertex with the 
@@ -119,10 +119,19 @@ public class Graph<K, V> extends HashMap<K, V> {
 		return super.remove(key);
 	}
 
+	/**
+	* Removes the given vertex, along with all edges leading
+	* from and to it, if it was mapped to the given value.
+	*
+	* @param key vertex label.
+	* @param value vertex value.
+	* @return true if the key existed and was mapped to the
+	* given value, false otherwise.
+	*/
 	@Override
 	public boolean remove(Object key, Object value) {
 		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
+			return false;
 		}
 		if(get(key).equals(value)) {
 			remove(key);
@@ -547,10 +556,10 @@ public class Graph<K, V> extends HashMap<K, V> {
 		});
 	}
 
-	private void setVFlagRestricted(K key, String flag, Object value) throws NoSuchLabelException, IncorrectFlagException {
-		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
-		}
+	private void setVFlagRestricted(K key, String flag, Object value) throws IncorrectFlagException {
+		//if(!containsKey(key)) {
+		//	throw new NoSuchLabelException(key.toString());
+		//}
 		vFlags.get(key).put(flag, value);
 	}
 
@@ -561,13 +570,13 @@ public class Graph<K, V> extends HashMap<K, V> {
 		setVFlagRestricted(key, flag, value);
 	}
 
-	public Object getVFlag(K key, String flag) throws NoSuchLabelException, IncorrectFlagException {
-		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
-		}
-		if(!vFlags.get(key).containsKey(flag)) {
-			throw new IncorrectFlagException(flag);
-		}
+	public Object getVFlag(K key, String flag) throws IncorrectFlagException {
+		//if(!containsKey(key)) {
+		//	throw new NoSuchLabelException(key.toString());
+		//}
+		//if(!vFlags.get(key).containsKey(flag)) {
+		//	throw new IncorrectFlagException(flag);
+		//}
 		return vFlags.get(key).get(flag);
 	}
 

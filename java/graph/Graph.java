@@ -9,6 +9,13 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.BiConsumer;
 
+/**
+* A class that allows for creating a graph, that is,
+* a set of connected vertices. Each vertex has a unique
+* label and a not-necessarily-unique value associated
+* with it. Every vertex can be connected to any other vertex,
+* with the exception of itself, with at most one directed edge.
+*/
 public class Graph<K, V> extends HashMap<K, V> {
 	private HashMap<K, HashMap<K, Object> > edges;
 	private HashMap<K, HashMap<K, Object> > edgesInverted;
@@ -17,6 +24,9 @@ public class Graph<K, V> extends HashMap<K, V> {
 	private HashMap<String, Object> defaultVFlags;
 	private HashMap<String, Object> gFlags;
 
+	/**
+	* Initialises private variables.
+	*/
 	private void init() {
 		edges = new HashMap<K, HashMap<K, Object> >();
 		edgesInverted = new HashMap<K, HashMap<K, Object> >();
@@ -26,58 +36,47 @@ public class Graph<K, V> extends HashMap<K, V> {
 		gFlags = new HashMap<String, Object>();
 	}
 	
+	/**
+	* A default constructor.
+	*/
 	public Graph() {
 		super();
 		init();
 	}
 
+	/**
+	* A constructor with an initial vertex.
+	* 
+	* @param key vertex label.
+	* @param value vertex value.
+	*/
 	public Graph(K key, V value) {
-		super();
-		init();
-		putIfAbsent(key, value);
+		this();
+		put(key, value);
 	}
 
-	// returns true if a new edge was added
-	public boolean attach(K keyA, K keyB) throws NoSuchLabelException {
-		if(!containsKey(keyA)) {
-			throw new NoSuchLabelException(keyA.toString());
-		}
-		if(!containsKey(keyB)) {
-			throw new NoSuchLabelException(keyB.toString());
-		}
-		// no self-edges
-		if(keyA.equals(keyB)) return false;
-		return edges.get(keyA).putIfAbsent(keyB, new Object()) == null &&
-				edgesInverted.get(keyB).putIfAbsent(keyA, new Object()) == null;
-	}
-
-	// returns 1 if edge from keyA to keyB was created
-	// returns 0 if no edge was created
-	// returns -1 if edge from keyB to keyA was created
-	// returns 2 if two edges were created
-	public short attachBoth(K keyA, K keyB) throws NoSuchLabelException {
-		if(!containsKey(keyA)) {
-			throw new NoSuchLabelException(keyA.toString());
-		}
-		if(!containsKey(keyB)) {
-			throw new NoSuchLabelException(keyB.toString());
-		}
-		if(attach(keyA, keyB)) {
-			if(attach(keyB, keyA)) return 2;
-			else return 1;
-		} else {
-			if(attach(keyB, keyA)) return -1;
-			else return 0;
+	/**
+	* Makes sure that the given label exists in the graph.
+	*
+	* @param key vertex label.
+	* @throws NoSuchLabelException if the vertex does not exist
+	* in the graph.
+	*/
+	private void ensureContainsKey(Object key) throws NoSuchLabelException {
+		if(!containsKey(key)) {
+			throw new NoSuchLabelException(key.toString());
 		}
 	}
 
-	public final boolean isAdjacent(K keyA, K keyB) {
-		if(!containsKey(keyA) || !containsKey(keyB)) {
-			return false;
-		}
-		return edges.get(keyA).containsKey(keyB);
-	}
-
+	/**
+	* Adds a new vertex to the graph; if the vertex with the 
+	* given label already exists, the function updates its value.
+	*
+	* @param key vertex label.
+	* @param value vertex value.
+	* @return the previous value associated with key, or null if
+	* there was no mapping for key.
+	*/
 	@Override
 	public V put(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
@@ -86,6 +85,15 @@ public class Graph<K, V> extends HashMap<K, V> {
 		return super.put(key, value);
 	}
 
+	/**
+	* Adds a new vertex to the graph, if there was no key
+	* label before.
+	*
+	* @param key vertex label.
+	* @param value vertex value.
+	* @return the previous value associated with the specified key,
+	* or null if there was no mapping for the key.
+	*/
 	@Override
 	public V putIfAbsent(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
@@ -94,43 +102,16 @@ public class Graph<K, V> extends HashMap<K, V> {
 		return super.putIfAbsent(key, value);
 	}
 
-	public void detach(Object keyA, Object keyB) throws NoSuchLabelException {
-		if(!containsKey(keyA)) {
-			throw new NoSuchLabelException(keyA.toString());
-		}
-		if(!containsKey(keyB)) {
-			throw new NoSuchLabelException(keyB.toString());
-		}
-		edges.get(keyA).remove(keyB);
-	}
-
-	private void detachEdgesLeadingFrom(Object key) throws NoSuchLabelException {
-		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
-		}
-		edges.get(key).clear();	
-	}
-
-	private void detachEdgesLeadingTo(Object key) throws NoSuchLabelException {
-		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
-		}
-		for(Map.Entry<K, Object> entry : edgesInverted.get(key).entrySet()) {
-			K neighbour = entry.getKey();
-			detach(neighbour, key);
-		}
-	}
-
-	private void detachAllEdges(Object key) throws NoSuchLabelException {
-		detachEdgesLeadingTo(key);
-		detachEdgesLeadingFrom(key);
-	}
-
+	/**
+	* Removes the given vertex, along with all edges leading
+	* from and to it.
+	*
+	* @param key vertex label.
+	* @return the previous value associated with key, or null
+	* if there was no mapping for key.
+	*/
 	@Override
-	public V remove(Object key) throws NoSuchLabelException {
-		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
-		}
+	public V remove(Object key) {
 		detachAllEdges(key);
 		edges.remove(key);
 		edgesInverted.remove(key);
@@ -139,7 +120,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	}
 
 	@Override
-	public boolean remove(Object key, Object value) throws NoSuchLabelException {
+	public boolean remove(Object key, Object value) throws {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
@@ -151,6 +132,134 @@ public class Graph<K, V> extends HashMap<K, V> {
 		}
 	}
 
+	/**
+	* Adds a new edge from keyA to keyB; does not permit self-edges.
+	*
+	* @param keyA first vertex label.
+	* @param keyB second vertex label.
+	* @return true if the edge was added, false if it 
+	* was a self-edge or it already existed.
+	*/
+	public boolean attach(K keyA, K keyB) {
+		if(keyA.equals(keyB)) return false;
+		return edges.get(keyA).putIfAbsent(keyB, new Object()) == null &&
+				edgesInverted.get(keyB).putIfAbsent(keyA, new Object()) == null;
+	}
+
+	/**
+	* Adds two edges - from keyA to keyB and from keyB to keyA.
+	*
+	* @param keyA first vertex label.
+	* @param keyB second vertex label.
+	* @return 2 if two edges were added, 1 if an edge from
+	* keyA to keyB was added, -1 if an edge from keyB to
+	* keyA was added, 0 if no edge was added.
+	*/
+	public short attachBoth(K keyA, K keyB) {
+		if(attach(keyA, keyB)) {
+			if(attach(keyB, keyA)) return 2;
+			else return 1;
+		} else {
+			if(attach(keyB, keyA)) return -1;
+			else return 0;
+		}
+	}
+
+	/**
+	* Removes an edge from keyA to keyB.
+	*
+	* @param keyA first vertex label.
+	* @param keyB second vertex label.
+	* @return true if the edge was removed, false otherwise
+	*/
+	public boolean detach(Object keyA, Object keyB) {
+		if(!containsKey(keyA) || !containsKey(keyB)) {
+			return false;
+		}
+		return edges.get(keyA).remove(keyB) != null;
+	}
+
+	/**
+	* Removes both edges - from keyA to keyB and from keyB to keyA.
+	*
+	* @param keyA first vertex label.
+	* @param keyB second vertex label.
+	* @return 2 if both edges were removed, 1 if an edge from
+	* keyA to keyB was removed, -1 if an edge from keyB to
+	* keyA was removed, 0 if no edge was removed.
+	*/
+	public short detachBoth(Object keyA, Object keyB) {
+		if(detach(keyA, keyB)) {
+			if(detach(keyB, keyA)) return 2;
+			else return 1;
+		} else {
+			if(detach(keyB, keyA)) return -1;
+			else return 0;
+		}
+	}
+
+	/**
+	* Removes all edges leading from vertex labelled as key.
+	*
+	* @param key vertex label.
+	* @return true if the vertex exists, false otherwise
+	*/
+	private boolean detachEdgesLeadingFrom(Object key) {
+		if(!containsKey(key)) {
+			return false;
+		}
+		forEachNeighbour((neighbour) -> {
+			edgesInverted.get(neighbour).remove(key);
+		});
+		edges.get(key).clear();	
+		return true;
+	}
+
+	/**
+	* Removes all edges leading to vertex labelled as key.
+	*
+	* @param key vertex label.
+	* @return true if the vertex exists, false otherwise
+	*/
+	private boolean detachEdgesLeadingTo(Object key) {
+		if(!containsKey(key)) {
+			return false;
+		}
+		edgesInverted.get(key).forEach((neighbour, value) -> {
+			edges.get(neighbour).remove(key);
+		});
+		edgesInverted.get(key).clear();
+		return true;
+	}
+
+	/**
+	* Removes all edges leading to and from vertex labelled as key.
+	*
+	* @param key vertex label.
+	* @return true if the vertex exists, false otherwise
+	*/
+	private boolean detachAllEdges(Object key) {
+		return detachEdgesLeadingTo(key) && detachEdgesLeadingFrom(key);
+	}
+
+	/**
+	* Returns true if there is an edge from keyA to keyB.
+	*
+	* @param keyA first vertex label.
+	* @param keyB second vertex label.
+	* @return true if there is an edge from keyA to keyB,
+	* false otherwise.
+	*/
+	public final boolean isAdjacent(K keyA, K keyB) {
+		if(!containsKey(keyA) || !containsKey(keyB)) {
+			return false;
+		}
+		return edges.get(keyA).containsKey(keyB);
+	}
+
+	/**
+	* Removes all flags, vertices, and connections between them.
+	*/
 	@Override
 	public void clear() {
 		edges.clear();
@@ -160,40 +269,85 @@ public class Graph<K, V> extends HashMap<K, V> {
 		super.clear();
 	}
 
-	public final void forEachNeighbour(K key, Consumer<? super K> action) throws NoSuchLabelException {
+	/**
+	* Iterates over all vertices connected with an edge to the the given vertex.
+	*
+	* @param key vertex label.
+	* @param action the action to be performed for each neighbour.
+	* @return true if the vertex exists, false otherwise.
+	*/
+	public final boolean forEachNeighbour(K key, Consumer<? super K> action) {
 		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
+			return false;
 		}
 		edges.get(key).forEach((neighbour, value) -> {
 			action.accept(neighbour);
 		});
+		return true;
 	}
 
-	public final Set<K> neighbourSet(K key) throws NoSuchLabelException {
+	/**
+	* Returns the set of all vertices connected with an edge to the given vertex.
+	* 
+	* @param key vertex label.
+	* @return the set of all neighbours of the given vertex, null if the 
+	* vertex doesn't exist.
+	*/
+	public final Set<K> neighbourSet(K key) {
 		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
+			return null;
 		}
 		return edges.get(key).keySet();
 	}
 
-	private final void markAsVisited(K key) throws NoSuchLabelException {
+	/**
+	* Marks the given vertex as 'visited'.
+	*
+	* @param key vertex label.
+	* @return true if the vertex exists, false otherwise.
+	*/ 
+	private final void markAsVisited(K key) {
 		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
+			return false;
 		}
 		setVFlagRestricted(key, "__visited", true);
+		return true;
 	}
 
-	private final void markAsUnvisited(K key) throws NoSuchLabelException {
+	/**
+	* Marks the given vertex as 'unvisited'.
+	*
+	* @param key vertex label.
+	* @return true if the vertex exists, false otherwise.
+	*/ 
+	private final void markAsUnvisited(K key) {
 		if(!containsKey(key)) {
-			throw new NoSuchLabelException(key.toString());
+			return false;
 		}
 		setVFlagRestricted(key, "__visited", false);
+		return true;
 	}
 
-	public final boolean hasBeenVisited(K key) throws NoSuchLabelException {
-		return (boolean)getVFlag(key, "__visited");
+	/**
+	* Checks if the given vertex is marked as 'visited'.
+	*
+	* @param key vertex label.
+	* @return true if the vertex exists and is marked as
+	* 'visited', false otherwise.
+	*/
+	public final boolean hasBeenVisited(K key) {
+		boolean result = (boolean)getVFlag(key, "__visited");
+		if(result == null) {
+			return false;
+		}
+		return result;
 	}
 
+	/**
+	* Checks if all vertices of the graph have been visited.
+	*
+	* @return true if all vertices have been marked as 'visited'.
+	*/
 	public final boolean allVisited() {
 		addGFlag("__all_visited", true);
 		forEach((key, value) -> {
@@ -204,6 +358,9 @@ public class Graph<K, V> extends HashMap<K, V> {
 		return (boolean)removeGFlag("__all_visited");
 	}
 
+	/**
+	* Marks all vertices as unvisited.
+	*/
 	public final void clearVisited() {
 		forEach((key, value) -> {
 			markAsUnvisited(key);

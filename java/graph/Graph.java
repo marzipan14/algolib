@@ -367,44 +367,119 @@ public class Graph<K, V> extends HashMap<K, V> {
 		});
 	}
 
-	private void dfs(K key, K previous, BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> preVisit, BiConsumer<K, K> postVisit, BiConsumer<K, K> post) throws NoSuchLabelException {
-		markAsVisited(key);
+	/**
+	* Performs a dfs starting with 'current' and having 'previous' as
+	* parent.
+	*
+	* @param current current vertex label.
+	* @param previous previous vertex label. Null if in the root.
+	* @param pre action to be performed upon entering the vertex.
+	* Takes current and previous vertex, respectively, as arguments.
+	* @param visited action to be performed if the encountered
+	* neighbour had already been visited. Takes current and next
+	* vertex, respectively, as arguments.
+	* @param notVisitedPre action to be performed before entering
+	* the neighbour that had not been visited previously. Takes
+	* current and next vertex, respectively, as arguments.
+	* @param notVisitedPost action to be performed after leaving
+	* the neighbour that had not been visited previously. Takes
+	* current and next vertex, respectively, as arguments.
+	* @param post action to be performed upon leaving the vertex.
+	* Takes current and previous vertex, respectively, as arguments.
+	*/
+	private void dfs(K current, K previous, BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> notVisitedPre, BiConsumer<K, K> notVisitedPost, BiConsumer<K, K> post) {
+		markAsVisited(current);
 		if(pre != null)
-			pre.accept(key, previous);
-		forEachNeighbour(key, (neighbour) -> {
+			pre.accept(current, previous);
+		forEachNeighbour(current, (neighbour) -> {
 			if(!hasBeenVisited(neighbour)) {
-				if(preVisit != null)
-					preVisit.accept(key, neighbour);
-				dfs(neighbour, key, pre, visited, preVisit, postVisit, post);
-				if(postVisit != null)
-					postVisit.accept(key, neighbour);
+				if(notVisitedPre != null)
+					notVisitedPre.accept(current, neighbour);
+				dfs(neighbour, current, pre, visited, notVisitedPre, notVisitedPost, post);
+				if(notVisitedPost != null)
+					notVisitedPost.accept(current, neighbour);
 			} else if(visited != null) {
-					visited.accept(key, neighbour);
+					visited.accept(current, neighbour);
 			}
 		});
 		if(post != null)
-			post.accept(key, previous);
+			post.accept(current, previous);
 	}
 
-	public void dfs(K key, BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> preVisit, BiConsumer<K, K> postVisit, BiConsumer<K, K> post) throws NoSuchLabelException {
-		dfs(key, null, pre, visited, preVisit, postVisit, post);
+	/**
+	* Performs a dfs starting with 'current'.
+	*
+	* @param current current vertex label.
+	* @param pre action to be performed upon entering the vertex.
+	* Takes current and previous vertex, respectively, as arguments.
+	* @param visited action to be performed if the encountered
+	* neighbour had already been visited. Takes current and next
+	* vertex, respectively, as arguments.
+	* @param notVisitedPre action to be performed before entering
+	* the neighbour that had not been visited previously. Takes
+	* current and next vertex, respectively, as arguments.
+	* @param notVisitedPost action to be performed after leaving
+	* the neighbour that had not been visited previously. Takes
+	* current and next vertex, respectively, as arguments.
+	* @param post action to be performed upon leaving the vertex.
+	* Takes current and previous vertex, respectively, as arguments.
+	*/
+	public void dfs(K current, BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> notVisitedPre, BiConsumer<K, K> notVisitedPost, BiConsumer<K, K> post) {
+		dfs(current, null, pre, visited, notVisitedPre, notVisitedPost, post);
 	}
 
-	public void dfs(BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> preVisit, BiConsumer<K, K> postVisit, BiConsumer<K, K> post) throws NoSuchLabelException {
+	/**
+	* Performs a dfs for all vertices in a graph. Clears the 
+	* 'visited' flag beforehand.
+	*
+	* @param pre action to be performed upon entering the vertex.
+	* Takes current and previous vertex, respectively, as arguments.
+	* @param visited action to be performed if the encountered
+	* neighbour had already been visited. Takes current and next
+	* vertex, respectively, as arguments.
+	* @param notVisitedPre action to be performed before entering
+	* the neighbour that had not been visited previously. Takes
+	* current and next vertex, respectively, as arguments.
+	* @param notVisitedPost action to be performed after leaving
+	* the neighbour that had not been visited previously. Takes
+	* current and next vertex, respectively, as arguments.
+	* @param post action to be performed upon leaving the vertex.
+	* Takes current and previous vertex, respectively, as arguments.
+	*/
+	public void dfs(BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> notVisitedPre, BiConsumer<K, K> notVisitedPost, BiConsumer<K, K> post) {
 		clearVisited();
 		forEach((key, value) -> {
 			if(!hasBeenVisited(key))
-				dfs(key, null, pre, visited, preVisit, postVisit, post);
+				dfs(key, null, pre, visited, notVisitedPre, notVisitedPost, post);
 		});
-		clearVisited();
 	}
 
+	/**
+	* Returns any vertex label currently in the graph.
+	* @return any vertex label. Null if there are none.
+	*/
 	public K anyKey() {
+		if(isEmpty()) return null;
 		return entrySet().iterator().next().getKey();
 	}
 
-	// you may want to clearVisited() before using this function
-	public void bfs(K start, Consumer<K> pre, BiConsumer<K, K> notVisited, BiConsumer<K, K> visited, Consumer<K> post) throws NoSuchLabelException {
+	/**
+	* Performs a bfs starting with 'start'.
+	*
+	* @param start initial vertex label.
+	* @param pre action to be performed upon entering the vertex.
+	* takes the current vertex label as an argument.
+	* @param notVisited action to be performed upon encountering
+	* a neighbour that had not been visited previously. Takes the
+	* current and next vertex, respectively, as arguments.
+	* @param visited action to be performed upon encountering
+	* a neighbour that had been visited previously. Takes the
+	* current and next vertex, respectively, as arguments.
+	* @param post action to be performed upon having analysed all
+	* neighbour of the given the vertex. Takes the current vertex
+	* label as as argument.
+	*/
+	public void bfs(K start, Consumer<K> pre, BiConsumer<K, K> notVisited, BiConsumer<K, K> visited, Consumer<K> post) {
 		LinkedList<K> queue = new LinkedList<K>();
 		queue.add(start);
 		markAsVisited(start);
@@ -427,13 +502,28 @@ public class Graph<K, V> extends HashMap<K, V> {
 		}
 	}
 
-	public void bfs(Consumer<K> pre, BiConsumer<K, K> notVisited, BiConsumer<K, K> visited, Consumer<K> post) throws NoSuchLabelException {
+	/**
+	* Performs a bfs on all vertices of the graph. Clears the
+	* 'visited' flag beforehand.
+	*
+	* @param pre action to be performed upon entering the vertex.
+	* takes the current vertex label as an argument.
+	* @param notVisited action to be performed upon encountering
+	* a neighbour that had not been visited previously. Takes the
+	* current and next vertex, respectively, as arguments.
+	* @param visited action to be performed upon encountering
+	* a neighbour that had been visited previously. Takes the
+	* current and next vertex, respectively, as arguments.
+	* @param post action to be performed upon having analysed all
+	* neighbour of the given the vertex. Takes the current vertex
+	* label as as argument.
+	*/
+	public void bfs(Consumer<K> pre, BiConsumer<K, K> notVisited, BiConsumer<K, K> visited, Consumer<K> post) {
 		clearVisited();
 		forEach((key, value) -> {
 			if(!hasBeenVisited(key))
 				bfs(key, pre, notVisited, visited, post);
 		});
-		clearVisited();
 	}
 
 // ==========================================================

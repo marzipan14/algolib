@@ -120,7 +120,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	}
 
 	@Override
-	public boolean remove(Object key, Object value) throws {
+	public boolean remove(Object key, Object value) {
 		if(!containsKey(key)) {
 			throw new NoSuchLabelException(key.toString());
 		}
@@ -208,7 +208,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 		if(!containsKey(key)) {
 			return false;
 		}
-		forEachNeighbour((neighbour) -> {
+		edges.get(key).forEach((neighbour, value) -> {
 			edgesInverted.get(neighbour).remove(key);
 		});
 		edges.get(key).clear();	
@@ -306,7 +306,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* @param key vertex label.
 	* @return true if the vertex exists, false otherwise.
 	*/ 
-	private final void markAsVisited(K key) {
+	private final boolean markAsVisited(K key) {
 		if(!containsKey(key)) {
 			return false;
 		}
@@ -320,7 +320,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* @param key vertex label.
 	* @return true if the vertex exists, false otherwise.
 	*/ 
-	private final void markAsUnvisited(K key) {
+	private final boolean markAsUnvisited(K key) {
 		if(!containsKey(key)) {
 			return false;
 		}
@@ -336,11 +336,11 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* 'visited', false otherwise.
 	*/
 	public final boolean hasBeenVisited(K key) {
-		boolean result = (boolean)getVFlag(key, "__visited");
+		Boolean result = (Boolean)getVFlag(key, "__visited");
 		if(result == null) {
 			return false;
 		}
-		return result;
+		return (boolean)result;
 	}
 
 	/**

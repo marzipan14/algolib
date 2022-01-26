@@ -16,13 +16,12 @@ import java.util.function.BiConsumer;
 * with it. Every vertex can be connected to any other vertex,
 * with the exception of itself, with at most one directed edge.
 */
-public class Graph<K, V> extends HashMap<K, V> {
+public class Graph<K, V> extends HashMap<K, V> implements Flags {
 	private HashMap<K, HashMap<K, Object> > edges;
 	private HashMap<K, HashMap<K, Object> > edgesInverted;
-
-	private HashMap<K, HashMap<String, Object> > vFlags;
-	private HashMap<String, Object> defaultVFlags;
-	private HashMap<String, Object> gFlags;
+	private HashMap<K, Boolean> visited;
+	private Flags localFlags;
+	private Flags globalFlags;
 
 	/**
 	* Initialises private variables.
@@ -30,10 +29,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	private void init() {
 		edges = new HashMap<K, HashMap<K, Object> >();
 		edgesInverted = new HashMap<K, HashMap<K, Object> >();
-		vFlags = new HashMap<K, HashMap<String, Object> >();
-		defaultVFlags = new HashMap<String, Object>();
-		addVFlag("__visited", false);
-		gFlags = new HashMap<String, Object>();
+		flags = new Flags();
 	}
 	
 	/**
@@ -56,21 +52,9 @@ public class Graph<K, V> extends HashMap<K, V> {
 	}
 
 	/**
-	* Makes sure that the given label exists in the graph.
-	*
-	* @param key vertex label.
-	* @throws NoSuchLabelException if the vertex does not exist
-	* in the graph.
-	*/
-	//private void ensureContainsKey(Object key) throws NoSuchLabelException {
-	//	if(!containsKey(key)) {
-	//		throw new NoSuchLabelException(key.toString());
-	//	}
-	//}
-
-	/**
 	* Adds a new vertex to the graph; if the vertex with the 
 	* given label already exists, the function updates its value.
+	* The 'visited' value remains unchanged.
 	*
 	* @param key vertex label.
 	* @param value vertex value.
@@ -81,6 +65,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public V put(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
+		visited.putIfAbsent(key, false);
 		vFlags.putIfAbsent(key, new HashMap<String, Object>(defaultVFlags));
 		return super.put(key, value);
 	}
@@ -98,6 +83,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public V putIfAbsent(K key, V value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
+		visited.putIfAbsent(key, false);
 		vFlags.putIfAbsent(key, new HashMap<String, Object>(defaultVFlags));
 		return super.putIfAbsent(key, value);
 	}
@@ -115,6 +101,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 		detachAllEdges(key);
 		edges.remove(key);
 		edgesInverted.remove(key);
+		visited.remove(key);
 		vFlags.remove(key);
 		return super.remove(key);
 	}
@@ -273,6 +260,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	public void clear() {
 		edges.clear();
 		edgesInverted.clear();
+		visited.clear();
 		clearVFlags();
 		clearGFlags();
 		super.clear();
@@ -319,7 +307,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 		if(!containsKey(key)) {
 			return false;
 		}
-		setVFlagRestricted(key, "__visited", true);
+		visited.put(key, true);
 		return true;
 	}
 
@@ -333,7 +321,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 		if(!containsKey(key)) {
 			return false;
 		}
-		setVFlagRestricted(key, "__visited", false);
+		visited.put(key, false);
 		return true;
 	}
 
@@ -345,7 +333,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* 'visited', false otherwise.
 	*/
 	public final boolean hasBeenVisited(K key) {
-		Boolean result = (Boolean)getVFlag(key, "__visited");
+		Boolean result = visited.get(key);
 		if(result == null) {
 			return false;
 		}
@@ -533,88 +521,5 @@ public class Graph<K, V> extends HashMap<K, V> {
 			if(!hasBeenVisited(key))
 				bfs(key, pre, notVisited, visited, post);
 		});
-	}
-
-// ==========================================================
-// FLAGS
-// ==========================================================
-
-	// add a new vFlag with default value
-	public void addVFlag(String flag, Object def) {
-		defaultVFlags.put(flag, def);
-		vFlags.forEach((key, value) -> {
-			value.put(flag, def);
-		});
-	}
-
-	public void removeVFlag(String flag) throws IncorrectFlagException {
-		if(flag.equals("__visited")) {
-			throw new IncorrectFlagException(flag);
-		}
-		vFlags.forEach((key, value) -> {
-			value.remove(flag);	
-		});
-	}
-
-	private void setVFlagRestricted(K key, String flag, Object value) throws IncorrectFlagException {
-		//if(!containsKey(key)) {
-		//	throw new NoSuchLabelException(key.toString());
-		//}
-		vFlags.get(key).put(flag, value);
-	}
-
-	public void setVFlag(K key, String flag, Object value) throws IncorrectFlagException {
-		if(!vFlags.get(key).containsKey(flag) || flag.equals("__visited")) {
-			throw new IncorrectFlagException(flag);
-		}
-		setVFlagRestricted(key, flag, value);
-	}
-
-	public Object getVFlag(K key, String flag) throws IncorrectFlagException {
-		//if(!containsKey(key)) {
-		//	throw new NoSuchLabelException(key.toString());
-		//}
-		//if(!vFlags.get(key).containsKey(flag)) {
-		//	throw new IncorrectFlagException(flag);
-		//}
-		return vFlags.get(key).get(flag);
-	}
-
-	public void clearVFlags() {
-		vFlags.forEach((key, flags) -> {
-			flags.forEach((flag, value) -> {
-				if(!flag.equals("__visited"))
-					flags.remove(flag);
-			});
-		});
-	}
-
-	public void addGFlag(String flag, Object def) {
-		gFlags.put(flag, def);
-	}
-
-	public Object removeGFlag(String flag) throws IncorrectFlagException {
-		if(!gFlags.containsKey(flag)) {
-			throw new IncorrectFlagException(flag);
-		}
-		return gFlags.remove(flag);
-	}
-
-	public void setGFlag(String flag, Object value) throws IncorrectFlagException {
-		if(!gFlags.containsKey(flag) || flag.equals("__visited")) {
-			throw new IncorrectFlagException(flag);
-		}
-		gFlags.put(flag, value);
-	}
-
-	public Object getGFlag(String flag) throws IncorrectFlagException {
-		if(!gFlags.containsKey(flag) || flag.equals("__visited")) {
-			throw new IncorrectFlagException(flag);
-		}
-		return gFlags.get(flag);
-	}
-
-	public void clearGFlags() {
-		gFlags.clear();
 	}
 }

@@ -136,10 +136,12 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* @param keyA first vertex label.
 	* @param keyB second vertex label.
 	* @return true if the edge was added, false if it 
-	* was a self-edge or it already existed.
+	* was a self-edge or it wasn't added.
 	*/
 	public boolean attach(K keyA, K keyB) {
-		if(keyA.equals(keyB)) return false;
+		if(!containsKey(keyA) || !containsKey(keyB) || keyA.equals(keyB)) {
+			return false;
+		}
 		return edges.get(keyA).putIfAbsent(keyB, new Object()) == null &&
 				edgesInverted.get(keyB).putIfAbsent(keyA, new Object()) == null;
 	}
@@ -171,7 +173,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* @return true if the edge was removed, false otherwise
 	*/
 	public boolean detach(Object keyA, Object keyB) {
-		if(!containsKey(keyA) || !containsKey(keyB)) {
+		if(!containsKey(keyA) || !containsKey(keyB) || keyA.equals(keyB)) {
 			return false;
 		}
 		return edges.get(keyA).remove(keyB) != null;

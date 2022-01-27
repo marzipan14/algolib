@@ -7,8 +7,9 @@ tests="$base/tests"
 junit="4.13.2"
 hamcrest="1.3"
 
-# if filename specified, run a single test
-if [[ -n $1 ]]; then
+files=("GraphTest")
+
+function compile_and_test {
 	filename=$1
 	
 # if the file is not in the directory structure, abort
@@ -27,6 +28,12 @@ if [[ -n $1 ]]; then
 
 # run
 	java -cp $bin:$lib/junit-$junit.jar:$lib/hamcrest-core-$hamcrest.jar org.junit.runner.JUnitCore $class
+}
+
+if [[ -n $1 ]]; then
+	compile_and_test $1
+else
+	for file in $files; do
+		compile_and_test $file
+	done
 fi
-
-

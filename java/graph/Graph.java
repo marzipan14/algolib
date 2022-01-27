@@ -16,12 +16,12 @@ import java.util.function.BiConsumer;
 * with it. Every vertex can be connected to any other vertex,
 * with the exception of itself, with at most one directed edge.
 */
-public class Graph<K, V> extends HashMap<K, V> implements Flags {
+public class Graph<K, V> extends HashMap<K, V> {
 	private HashMap<K, HashMap<K, Object> > edges;
 	private HashMap<K, HashMap<K, Object> > edgesInverted;
 	private HashMap<K, Boolean> visited;
-	private Flags localFlags;
-	private Flags globalFlags;
+	public LocalFlags<K> localFlags;
+	public GlobalFlags globalFlags;
 
 	/**
 	* Initialises private variables.
@@ -29,7 +29,9 @@ public class Graph<K, V> extends HashMap<K, V> implements Flags {
 	private void init() {
 		edges = new HashMap<K, HashMap<K, Object> >();
 		edgesInverted = new HashMap<K, HashMap<K, Object> >();
-		flags = new Flags();
+		visited = new HashMap<K, Boolean>();
+		localFlags = new LocalFlags<K>();
+		globalFlags = new GlobalFlags();
 	}
 	
 	/**
@@ -66,7 +68,7 @@ public class Graph<K, V> extends HashMap<K, V> implements Flags {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
 		visited.putIfAbsent(key, false);
-		vFlags.putIfAbsent(key, new HashMap<String, Object>(defaultVFlags));
+		localFlags.expand(key);
 		return super.put(key, value);
 	}
 
@@ -84,7 +86,7 @@ public class Graph<K, V> extends HashMap<K, V> implements Flags {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
 		visited.putIfAbsent(key, false);
-		vFlags.putIfAbsent(key, new HashMap<String, Object>(defaultVFlags));
+		localFlags.expand(key);
 		return super.putIfAbsent(key, value);
 	}
 
@@ -102,7 +104,7 @@ public class Graph<K, V> extends HashMap<K, V> implements Flags {
 		edges.remove(key);
 		edgesInverted.remove(key);
 		visited.remove(key);
-		vFlags.remove(key);
+		localFlags.remove(key);
 		return super.remove(key);
 	}
 
@@ -261,8 +263,8 @@ public class Graph<K, V> extends HashMap<K, V> implements Flags {
 		edges.clear();
 		edgesInverted.clear();
 		visited.clear();
-		clearVFlags();
-		clearGFlags();
+		localFlags.clear();
+		globalFlags.clear();
 		super.clear();
 	}
 
@@ -346,13 +348,15 @@ public class Graph<K, V> extends HashMap<K, V> implements Flags {
 	* @return true if all vertices have been marked as 'visited'.
 	*/
 	public final boolean allVisited() {
-		addGFlag("__all_visited", true);
+		globalFlags.add("__allVisited", true);
 		forEach((key, value) -> {
 			if(!hasBeenVisited(key)){
-				setGFlag("__all_visited", false);
+				globalFlags.set("__all_visited", false);
 			}
 		});
-		return (boolean)removeGFlag("__all_visited");
+		boolean result = (boolean)globalFlags.get("__allVisited");
+		globalFlags.remove("__allVisited");
+		return result;
 	}
 
 	/**

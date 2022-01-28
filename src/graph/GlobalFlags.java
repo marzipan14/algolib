@@ -7,12 +7,12 @@ import java.util.HashMap;
 * with a unique value. Particularly useful in dfs/bfs.
 */
 public final class GlobalFlags extends Flags {
-	HashMap<String, Object> flags;
+	private HashMap<String, Object> flags;
 
 	/** 
 	* A default constructor.
 	*/
-	public GlobalFlags() {
+	protected GlobalFlags() {
 		flags = new HashMap<String, Object>();
 	}
 
@@ -26,7 +26,7 @@ public final class GlobalFlags extends Flags {
 	* if it already existed.
 	*/
 	@Override
-	public boolean add(String flag, Object def) {
+	protected boolean add(String flag, Object def) {
 		if(flags.containsKey(flag)) {
 			return false;
 		}
@@ -43,7 +43,7 @@ public final class GlobalFlags extends Flags {
 	* if it wasn't there in the first place.
 	*/
 	@Override
-	public boolean remove(Object flag) {
+	protected boolean remove(Object flag) {
 		if(!flags.containsKey(flag)) {
 			return false;
 		}
@@ -59,7 +59,7 @@ public final class GlobalFlags extends Flags {
 	* @param value new value.
 	* @return true if the flag exists, false otherwise.
 	*/
-	public boolean set(String flag, Object value) {
+	protected boolean set(String flag, Object value) {
 		if(!flags.containsKey(flag)) {
 			return false;
 		}
@@ -74,7 +74,7 @@ public final class GlobalFlags extends Flags {
 	* @return the value of the given flag, or null
 	* if the flag doesn't exist.
 	*/
-	public Object get(String flag) {
+	protected Object get(String flag) {
 		if(!flags.containsKey(flag)) {
 			return null;
 		}
@@ -85,7 +85,7 @@ public final class GlobalFlags extends Flags {
 	* Deletes all global flags and their values.
 	*/
 	@Override
-	public void clear() {
+	protected void clear() {
 		flags.clear();
 	}
 }

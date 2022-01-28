@@ -10,14 +10,14 @@ import java.util.HashMap;
 * independently manipulated. Particularly useful for
 * dfs/bfs.
 */
-public final class LocalFlags<K> extends Flags {
-	HashMap<K, HashMap<String, Object> > flags;
-	HashMap<String, Object> defaultFlags;
+final class LocalFlags<K> extends Flags {
+	private HashMap<K, HashMap<String, Object> > flags;
+	private HashMap<String, Object> defaultFlags;
 
 	/**
 	* A default constructor.
 	*/
-	public LocalFlags() {
+	protected LocalFlags() {
 		flags = new HashMap<K, HashMap<String, Object> >();
 		defaultFlags = new HashMap<String, Object>();
 	}
@@ -34,7 +34,7 @@ public final class LocalFlags<K> extends Flags {
 	* if it already existed.
 	*/
 	@Override
-	public boolean add(String flag, Object value) {
+	protected boolean add(String flag, Object value) {
 		if(defaultFlags.containsKey(flag)) {
 			return false;
 		}
@@ -56,7 +56,7 @@ public final class LocalFlags<K> extends Flags {
 	* if it wasn't there in the first place.
 	*/
 	@Override
-	public boolean remove(Object flag) {
+	protected boolean remove(Object flag) {
 		if(!defaultFlags.containsKey(flag)) {
 			return false;
 		}
@@ -77,7 +77,7 @@ public final class LocalFlags<K> extends Flags {
 	* @return true if the flag has been set, flase if it doesn't
 	* exist, or if the given vertex doesn't exist.
 	*/
-	public boolean set(K key, String flag, Object value) {
+	protected boolean set(K key, String flag, Object value) {
 		if(!flags.containsKey(key)) {
 			return false;
 		}
@@ -98,7 +98,7 @@ public final class LocalFlags<K> extends Flags {
 	* @return the value of the given flag in the given vertex,
 	* or null if either the flag or the vertex doesn't exist.
 	*/
-	public Object get(K key, String flag) {
+	protected Object get(K key, String flag) {
 		if(!flags.containsKey(key)) {
 			return null;
 		}
@@ -112,7 +112,7 @@ public final class LocalFlags<K> extends Flags {
 	* Deletes all local flags and their values.
 	*/
 	@Override
-	public void clear() {
+	protected void clear() {
 		flags.clear();
 		defaultFlags.clear();
 	}
@@ -122,7 +122,7 @@ public final class LocalFlags<K> extends Flags {
 	*
 	* @param key vertex label.
 	*/
-	public void expand(K key) {
+	protected void expand(K key) {
 		flags.putIfAbsent(key, new HashMap<String, Object>(defaultFlags));
 	}
 }

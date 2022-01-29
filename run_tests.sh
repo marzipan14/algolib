@@ -7,7 +7,7 @@ tests="$base/tests"
 junit="4.13.2"
 hamcrest="1.3"
 
-files=("GraphTest")
+files=("GraphTest" "GraphDfsTest")
 
 function compile_and_test {
 	filename=$1
@@ -19,7 +19,7 @@ function compile_and_test {
 	fi
 
 # compile
-	javac -cp $src:$tests:$lib/junit-$junit.jar:$lib/hamcrest-core-$hamcrest.jar -d $bin $path
+	javac -Xlint -cp $src:$tests:$lib/junit-$junit.jar:$lib/hamcrest-core-$hamcrest.jar -d $bin $path
 
 # change path to java class name
 	class="${path#${tests}/}"
@@ -33,7 +33,8 @@ function compile_and_test {
 if [[ -n $1 ]]; then
 	compile_and_test $1
 else
-	for file in $files; do
+	for file in ${files[@]}; do
+		echo "Testing $file"
 		compile_and_test $file
 	done
 fi

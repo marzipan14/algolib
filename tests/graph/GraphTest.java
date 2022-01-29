@@ -6,6 +6,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.junit.Before;
+import java.util.Set;
 
 public class GraphTest {
 	Graph<Integer, String> g;
@@ -261,5 +262,48 @@ public class GraphTest {
 	@Test
 	public void testIsAdjacentForTheSameVertex() {
 		assertFalse(g.isAdjacent(1, 1));
+	}
+
+	@Test
+	public void testForEachNeighbourIfVertexExists() {
+		g.put(4, "d");
+		g.attach(1, 2);
+		g.attach(1, 3);
+		g.attach(4, 1);
+		assertTrue(g.get(1).equals("a"));
+		assertTrue(g.get(2).equals("b"));
+		assertTrue(g.get(3).equals("c"));
+		assertTrue(g.get(4).equals("d"));
+		assertTrue(g.forEachNeighbour(1, (neighbour) -> {
+			g.put(neighbour, "x");
+		}));
+		assertTrue(g.get(1).equals("a"));
+		assertTrue(g.get(2).equals("x"));
+		assertTrue(g.get(3).equals("x"));
+		assertTrue(g.get(4).equals("d"));
+	}
+
+	@Test
+	public void testForEachNeighbourIfVertexDoesntExist() {
+		assertFalse(g.forEachNeighbour(4, (neighbour) -> {
+			g.put(neighbour, "x");	
+		}));
+	}
+
+	@Test
+	public void testNeighbourSetIfVertexExists() {
+		g.put(4, "d");
+		g.attach(1, 2);
+		g.attach(1, 3);
+		g.attach(4, 1);
+		Set<Integer> S = g.neighbourSet(1);
+		assertEquals(S.size(), 2);
+		assertTrue(S.contains(2));
+		assertTrue(S.contains(3));
+	}
+
+	@Test
+	public void testNeighbourSetIfVertexDoesntExist() {
+		assertNull(g.neighbourSet(4));
 	}
 }

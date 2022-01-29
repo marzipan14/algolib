@@ -4,7 +4,7 @@ import graph.Graph;
 
 /**
 * Makes it possible to check if the graph is complete.
-* Utilises an additional flag "__is_complete".
+* Utilises an additional global flag "__is_complete".
 */
 public final class GraphCompleteTest {
 	/**

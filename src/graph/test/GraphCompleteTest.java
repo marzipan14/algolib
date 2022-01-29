@@ -13,7 +13,7 @@ public final class GraphCompleteTest {
 	* @param g the graph to perform the check on.
 	* @return true if the graph is complete, false otherwise. 
 	*/
-	public <K, V> boolean check(Graph<K, V> g) {
+	public static <K, V> boolean check(Graph<K, V> g) {
 		if(g == null) return false;
 		g.globalFlags.add("__is_complete", true);
 		g.forEach((key, value) -> {

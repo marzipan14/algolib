@@ -13,7 +13,7 @@ public final class GraphUndirectedTest {
 	* @param g the graph to perform the check on.
 	* @return true if the graph is undirected, false otherwise. 
 	*/
-	public <K, V> boolean check(Graph<K, V> g) {
+	public static <K, V> boolean check(Graph<K, V> g) {
 		g.globalFlags.add("__is_undirected", true);
 		g.forEach((key, value) -> {
 			g.forEachNeighbour(key, (neighbour) -> {

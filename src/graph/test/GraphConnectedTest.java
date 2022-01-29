@@ -13,7 +13,7 @@ public final class GraphConnectedTest {
 	* @param g the graph to perform the check on.
 	* @return true if the graph is connected, false otherwise. 
 	*/
-	public <K, V> boolean check(Graph<K, V> g) {
+	public static <K, V> boolean check(Graph<K, V> g) {
 		g.clearVisited();
 		g.dfs(g.anyKey(), null, null, null, null, null);
 		return allVisited(g);
@@ -25,7 +25,7 @@ public final class GraphConnectedTest {
 	* @param g the graph to perform the check on.
 	* @return true if all vertices have been marked as 'visited'.
 	*/
-	public <K, V> boolean allVisited(Graph<K, V> g) {
+	private <K, V> boolean allVisited(Graph<K, V> g) {
 		g.globalFlags.add("__all_visited", true);
 		g.forEach((key, value) -> {
 			if(!g.hasBeenVisited(key)){

@@ -250,7 +250,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* @return true if there is an edge from keyA to keyB,
 	* false otherwise.
 	*/
-	public final boolean isAdjacent(K keyA, K keyB) {
+	public boolean isAdjacent(K keyA, K keyB) {
 		if(!containsKey(keyA) || !containsKey(keyB)) {
 			return false;
 		}
@@ -277,7 +277,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* @param action the action to be performed for each neighbour.
 	* @return true if the vertex exists, false otherwise.
 	*/
-	public final boolean forEachNeighbour(K key, Consumer<? super K> action) {
+	public boolean forEachNeighbour(K key, Consumer<? super K> action) {
 		if(!containsKey(key)) {
 			return false;
 		}
@@ -294,7 +294,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* @return the set of all neighbours of the given vertex, null if the 
 	* vertex doesn't exist.
 	*/
-	public final Set<K> neighbourSet(K key) {
+	public Set<K> neighbourSet(K key) {
 		if(!containsKey(key)) {
 			return null;
 		}
@@ -302,12 +302,13 @@ public class Graph<K, V> extends HashMap<K, V> {
 	}
 
 	/**
-	* Marks the given vertex as 'visited'.
+	* Marks the given vertex as 'visited'. If the vertex
+	* doesn't exist, does nothing.
 	*
 	* @param key vertex label.
 	* @return true if the vertex exists, false otherwise.
 	*/ 
-	private final boolean markAsVisited(K key) {
+	private boolean markAsVisited(K key) {
 		if(!containsKey(key)) {
 			return false;
 		}
@@ -316,12 +317,13 @@ public class Graph<K, V> extends HashMap<K, V> {
 	}
 
 	/**
-	* Marks the given vertex as 'unvisited'.
+	* Marks the given vertex as 'unvisited'. If the vertex
+	* doesn't exist, does nothing.
 	*
 	* @param key vertex label.
 	* @return true if the vertex exists, false otherwise.
 	*/ 
-	private final boolean markAsUnvisited(K key) {
+	private boolean markAsUnvisited(K key) {
 		if(!containsKey(key)) {
 			return false;
 		}
@@ -336,35 +338,17 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* @return true if the vertex exists and is marked as
 	* 'visited', false otherwise.
 	*/
-	public final boolean hasBeenVisited(K key) {
-		Boolean result = visited.get(key);
-		if(result == null) {
+	public boolean hasBeenVisited(K key) {
+		if(!containsKey(key)) {
 			return false;
 		}
-		return (boolean)result;
-	}
-
-	/**
-	* Checks if all vertices of the graph have been visited.
-	*
-	* @return true if all vertices have been marked as 'visited'.
-	*/
-	public final boolean allVisited() {
-		globalFlags.add("__allVisited", true);
-		forEach((key, value) -> {
-			if(!hasBeenVisited(key)){
-				globalFlags.set("__all_visited", false);
-			}
-		});
-		boolean result = (boolean)globalFlags.get("__allVisited");
-		globalFlags.remove("__allVisited");
-		return result;
+		return (boolean)visited.get(key);
 	}
 
 	/**
 	* Marks all vertices as unvisited.
 	*/
-	public final void clearVisited() {
+	public void clearVisited() {
 		forEach((key, value) -> {
 			markAsUnvisited(key);
 		});
@@ -428,6 +412,9 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* Takes current and previous vertex, respectively, as arguments.
 	*/
 	public void dfs(K current, BiConsumer<K, K> pre, BiConsumer<K, K> visited, BiConsumer<K, K> notVisitedPre, BiConsumer<K, K> notVisitedPost, BiConsumer<K, K> post) {
+		if(!containsKey(current)) {
+			return;
+		}
 		dfs(current, null, pre, visited, notVisitedPre, notVisitedPost, post);
 	}
 

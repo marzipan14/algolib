@@ -26,7 +26,7 @@ public final class GlobalFlags extends Flags {
 	* if it already existed.
 	*/
 	@Override
-	protected boolean add(String flag, Object def) {
+	public boolean add(String flag, Object def) {
 		if(flags.containsKey(flag)) {
 			return false;
 		}
@@ -43,7 +43,7 @@ public final class GlobalFlags extends Flags {
 	* if it wasn't there in the first place.
 	*/
 	@Override
-	protected boolean remove(Object flag) {
+	public boolean remove(Object flag) {
 		if(!flags.containsKey(flag)) {
 			return false;
 		}
@@ -59,7 +59,7 @@ public final class GlobalFlags extends Flags {
 	* @param value new value.
 	* @return true if the flag exists, false otherwise.
 	*/
-	protected boolean set(String flag, Object value) {
+	public boolean set(String flag, Object value) {
 		if(!flags.containsKey(flag)) {
 			return false;
 		}
@@ -74,7 +74,7 @@ public final class GlobalFlags extends Flags {
 	* @return the value of the given flag, or null
 	* if the flag doesn't exist.
 	*/
-	protected Object get(String flag) {
+	public Object get(String flag) {
 		if(!flags.containsKey(flag)) {
 			return null;
 		}
@@ -85,7 +85,7 @@ public final class GlobalFlags extends Flags {
 	* Deletes all global flags and their values.
 	*/
 	@Override
-	protected void clear() {
+	public void clear() {
 		flags.clear();
 	}
 }

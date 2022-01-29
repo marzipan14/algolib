@@ -34,7 +34,7 @@ final class LocalFlags<K> extends Flags {
 	* if it already existed.
 	*/
 	@Override
-	protected boolean add(String flag, Object value) {
+	public boolean add(String flag, Object value) {
 		if(defaultFlags.containsKey(flag)) {
 			return false;
 		}
@@ -56,7 +56,7 @@ final class LocalFlags<K> extends Flags {
 	* if it wasn't there in the first place.
 	*/
 	@Override
-	protected boolean remove(Object flag) {
+	public boolean remove(Object flag) {
 		if(!defaultFlags.containsKey(flag)) {
 			return false;
 		}
@@ -77,7 +77,7 @@ final class LocalFlags<K> extends Flags {
 	* @return true if the flag has been set, flase if it doesn't
 	* exist, or if the given vertex doesn't exist.
 	*/
-	protected boolean set(K key, String flag, Object value) {
+	public boolean set(K key, String flag, Object value) {
 		if(!flags.containsKey(key)) {
 			return false;
 		}
@@ -98,7 +98,7 @@ final class LocalFlags<K> extends Flags {
 	* @return the value of the given flag in the given vertex,
 	* or null if either the flag or the vertex doesn't exist.
 	*/
-	protected Object get(K key, String flag) {
+	public Object get(K key, String flag) {
 		if(!flags.containsKey(key)) {
 			return null;
 		}
@@ -112,7 +112,7 @@ final class LocalFlags<K> extends Flags {
 	* Deletes all local flags and their values.
 	*/
 	@Override
-	protected void clear() {
+	public void clear() {
 		flags.clear();
 		defaultFlags.clear();
 	}

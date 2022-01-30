@@ -8,12 +8,10 @@ import graph.Graph;
 
 public class GraphCompleteTestTest {
 	private Graph<Integer, String> g;
-	private GraphCompleteTest test;
 
 	@Before
 	public void init() {
 		g = new Graph<Integer, String>();
-		test = new GraphCompleteTest();
 	}
 
 	@Test
@@ -28,7 +26,7 @@ public class GraphCompleteTestTest {
 		g.attachBoth(2, 4);
 		g.attachBoth(3, 4);
 		g.attachBoth(2, 3);
-		assertTrue(test.check(g));
+		assertTrue(GraphCompleteTest.check(g));
 	}
 
 	@Test
@@ -49,20 +47,20 @@ public class GraphCompleteTestTest {
 		g.attachBoth(5, 6);
 		g.attachBoth(6, 7);
 		g.attachBoth(5, 7);
-		assertFalse(test.check(g));	
+		assertFalse(GraphCompleteTest.check(g));	
 	}
 
 	@Test
 	public void testCompleteWithSinglePoint() {
 		g.put(1, "a");
-		assertTrue(test.check(g));
+		assertTrue(GraphCompleteTest.check(g));
 	}
 
 	@Test
 	public void testCompleteWithTwoPoints() {
 		g.put(1, "a");
 		g.put(2, "b");
-		assertFalse(test.check(g));
+		assertFalse(GraphCompleteTest.check(g));
 	}
 
 	@Test
@@ -76,7 +74,7 @@ public class GraphCompleteTestTest {
 		g.attachBoth(1, 4);
 		g.attachBoth(3, 4);
 		g.attachBoth(2, 3);
-		assertFalse(test.check(g));
+		assertFalse(GraphCompleteTest.check(g));
 	}
 
 	@Test
@@ -91,6 +89,11 @@ public class GraphCompleteTestTest {
 		g.attachBoth(1, 4);
 		g.attachBoth(3, 4);
 		g.attachBoth(2, 3);
-		assertFalse(test.check(g));
+		assertFalse(GraphCompleteTest.check(g));
+	}
+
+	@Test
+	public void testCompleteWithNull() {
+		assertTrue(GraphCompleteTest.check(g));
 	}
 }

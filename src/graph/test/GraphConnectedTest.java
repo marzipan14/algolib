@@ -8,15 +8,20 @@ import graph.Graph;
 */
 public final class GraphConnectedTest {
 	/**
-	* Performs the check.
+	* Performs the check. Clears the "visited" flag.
 	*
 	* @param g the graph to perform the check on.
 	* @return true if the graph is connected, false otherwise. 
 	*/
 	public static <K, V> boolean check(Graph<K, V> g) {
+		if(g == null) return true;
+		Graph<K, V> gReversed = Graph.reverse(g);
+		K arbitraryKey = g.anyKey();
 		g.clearVisited();
-		g.dfs(g.anyKey(), null, null, null, null, null);
-		return allVisited(g);
+		g.dfs(arbitraryKey, null,null, null, null, null);
+		gReversed.clearVisited();
+		gReversed.dfs(arbitraryKey, null, null, null, null, null);
+		return allVisited(g) && allVisited(gReversed);
 	}
 
 	/**
@@ -25,7 +30,7 @@ public final class GraphConnectedTest {
 	* @param g the graph to perform the check on.
 	* @return true if all vertices have been marked as 'visited'.
 	*/
-	private <K, V> boolean allVisited(Graph<K, V> g) {
+	private static <K, V> boolean allVisited(Graph<K, V> g) {
 		g.globalFlags.add("__all_visited", true);
 		g.forEach((key, value) -> {
 			if(!g.hasBeenVisited(key)){

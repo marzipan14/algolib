@@ -306,4 +306,46 @@ public class GraphTest {
 	public void testNeighbourSetIfVertexDoesntExist() {
 		assertNull(g.neighbourSet(4));
 	}
+
+	@Test
+	public void testReverseForArbitraryGraph() {
+		g.put(4, "d");
+		g.put(5, "e");
+		g.attach(1, 4);
+		g.attachBoth(1, 2);
+		g.attach(3, 1);
+		g.attach(3, 4);
+		g.attach(4, 2);
+		g.attach(2, 5);
+		g.attach(4, 5);
+		
+		Graph<Integer, String> gReversed = Graph.reverse(g);
+		assertTrue(gReversed.containsKey(1));
+		assertTrue(gReversed.containsKey(2));
+		assertTrue(gReversed.containsKey(3));
+		assertTrue(gReversed.containsKey(4));
+		assertTrue(gReversed.containsKey(5));
+		assertTrue(gReversed.isAdjacent(1, 2));
+		assertTrue(gReversed.isAdjacent(2, 1));
+		assertTrue(gReversed.isAdjacent(4, 1));
+		assertTrue(gReversed.isAdjacent(1, 3));
+		assertTrue(gReversed.isAdjacent(4, 3));
+		assertTrue(gReversed.isAdjacent(2, 4));
+		assertTrue(gReversed.isAdjacent(5, 2));
+		assertTrue(gReversed.isAdjacent(5, 4));
+	}
+
+	@Test
+	public void testReverseForPoint() {
+		Graph<Integer, String> g1 = new Graph<Integer, String>();
+		g1.put(1, "a");
+		Graph<Integer, String> g2 = Graph.reverse(g1);
+		assertTrue(g2.containsKey(1));
+	}
+
+	@Test
+	public void testReverseForNull() {
+		Graph<Integer, String> g1 = Graph.reverse(null);
+		assertNull(g1);
+	}
 }

@@ -15,6 +15,8 @@ import java.util.function.BiConsumer;
 * label and a not-necessarily-unique value associated
 * with it. Every vertex can be connected to any other vertex,
 * with the exception of itself, with at most one directed edge.
+* K - vertex label type
+* V - vertex value type
 */
 public class Graph<K, V> extends HashMap<K, V> {
 	private HashMap<K, HashMap<K, Object> > edges;
@@ -514,5 +516,24 @@ public class Graph<K, V> extends HashMap<K, V> {
 			if(!hasBeenVisited(key))
 				bfs(key, pre, notVisited, visited, post);
 		});
+	}
+
+	public static <K, V> Graph<K, V> reverse(Graph<K, V> g) {
+		if(g == null) return null;
+		Graph<K, V> gReversed = new Graph<K, V>();
+		g.forEach((key, value) -> {
+			gReversed.put(key, value);
+		});
+		g.bfs(
+			null,
+			(current, next) -> {
+				gReversed.attach(next, current);
+			},
+			(current, next) -> {
+				gReversed.attach(next, current);
+			},
+			null
+		);
+		return gReversed;
 	}
 }

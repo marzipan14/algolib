@@ -15,21 +15,21 @@ public final class GraphUndirectedTest {
 	*/
 	public static <K, V> boolean check(Graph<K, V> g) {
 		if(g == null) return true;
-		g.globalFlags.add("__is_undirected", true);
+		g.addGlobalFlag("__is_undirected", true);
 		g.bfs(
 			null,
 			(current, next) -> {
 				if(!g.isAdjacent(next, current))
-					g.globalFlags.set("__is_undirected", false);
+					g.setGlobalFlag("__is_undirected", false);
 			},
 			(current, next) -> {
 				if(!g.isAdjacent(next, current))
-					g.globalFlags.set("__is_undirected", false);
+					g.setGlobalFlag("__is_undirected", false);
 			},
 			null
 		);
-		boolean result = (boolean)g.globalFlags.get("__is_undirected");
-		g.globalFlags.remove("__is_undirected");
+		boolean result = (boolean)g.getGlobalFlag("__is_undirected");
+		g.removeGlobalFlag("__is_undirected");
 		return result;
 	}
 }

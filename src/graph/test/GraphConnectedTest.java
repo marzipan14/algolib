@@ -31,14 +31,14 @@ public final class GraphConnectedTest {
 	* @return true if all vertices have been marked as 'visited'.
 	*/
 	private static <K, V> boolean allVisited(Graph<K, V> g) {
-		g.globalFlags.add("__all_visited", true);
+		g.addGlobalFlag("__all_visited", true);
 		g.forEach((key, value) -> {
 			if(!g.hasBeenVisited(key)){
-				g.globalFlags.set("__all_visited", false);
+				g.setGlobalFlag("__all_visited", false);
 			}
 		});
-		boolean result = (boolean)g.globalFlags.get("__all_visited");
-		g.globalFlags.remove("__all_visited");
+		boolean result = (boolean)g.getGlobalFlag("__all_visited");
+		g.removeGlobalFlag("__all_visited");
 		return result;
 	}
 }

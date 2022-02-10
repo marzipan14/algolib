@@ -15,14 +15,14 @@ public final class GraphCompleteTest {
 	*/
 	public static <K, V> boolean check(Graph<K, V> g) {
 		if(g == null) return false;
-		g.globalFlags.add("__is_complete", true);
+		g.addGlobalFlag("__is_complete", true);
 		g.forEach((key, value) -> {
 			if(g.neighbourSet(key).size() < g.size()-1) {
-				g.globalFlags.set("__is_complete", false);
+				g.setGlobalFlag("__is_complete", false);
 			}
 		});
-		boolean result = (boolean)g.globalFlags.get("__is_complete");
-		g.globalFlags.remove("__is_complete");
+		boolean result = (boolean)g.getGlobalFlag("__is_complete");
+		g.removeGlobalFlag("__is_complete");
 		return result;
 	}
 }

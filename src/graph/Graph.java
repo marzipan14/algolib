@@ -16,14 +16,14 @@ import java.util.function.BiConsumer;
 * with it. Every vertex can be connected to any other vertex,
 * with the exception of itself, with at most one directed edge.
 * K - vertex label type
-* V - vertex value type
+* M - vertex value type
 */
-public class Graph<K, V> extends HashMap<K, V> {
+public class Graph<K, M> extends HashMap<K, M> {
 	private HashMap<K, HashMap<K, Object> > edges;
 	private HashMap<K, HashMap<K, Object> > edgesInverted;
 	private HashMap<K, Boolean> visited;
-	public LocalFlags<K> localFlags;
-	public GlobalFlags globalFlags;
+	private HashMap<String, LocalFlag<K, Object>> localFlags;
+	private HashMap<String, GlobalFlag<Object>> globalFlags;
 
 	/**
 	* Initialises private variables.
@@ -32,8 +32,8 @@ public class Graph<K, V> extends HashMap<K, V> {
 		edges = new HashMap<K, HashMap<K, Object> >();
 		edgesInverted = new HashMap<K, HashMap<K, Object> >();
 		visited = new HashMap<K, Boolean>();
-		localFlags = new LocalFlags<K>();
-		globalFlags = new GlobalFlags();
+		localFlags = new HashMap<String, LocalFlag<K, Object>>();
+		globalFlags = new HashMap<String, GlobalFlag<Object>>();
 	}
 	
 	/**
@@ -50,7 +50,7 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* @param key vertex label.
 	* @param value vertex value.
 	*/
-	public Graph(K key, V value) {
+	public Graph(K key, M value) {
 		this();
 		put(key, value);
 	}
@@ -66,11 +66,11 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* there was no mapping for key.
 	*/
 	@Override
-	public V put(K key, V value) {
+	public M put(K key, M value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
 		visited.putIfAbsent(key, false);
-		localFlags.expand(key);
+		extendLocalFlags(key);
 		return super.put(key, value);
 	}
 
@@ -84,11 +84,11 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* or null if there was no mapping for the key.
 	*/
 	@Override
-	public V putIfAbsent(K key, V value) {
+	public M putIfAbsent(K key, M value) {
 		edges.putIfAbsent(key, new HashMap<K, Object>());
 		edgesInverted.putIfAbsent(key, new HashMap<K, Object>());
 		visited.putIfAbsent(key, false);
-		localFlags.expand(key);
+		extendLocalFlags(key);
 		return super.putIfAbsent(key, value);
 	}
 
@@ -101,12 +101,12 @@ public class Graph<K, V> extends HashMap<K, V> {
 	* if there was no mapping for key.
 	*/
 	@Override
-	public V remove(Object key) {
+	public M remove(Object key) {
 		detachAllEdges(key);
 		edges.remove(key);
 		edgesInverted.remove(key);
 		visited.remove(key);
-		localFlags.remove(key);
+		shrinkLocalFlags(key);
 		return super.remove(key);
 	}
 
@@ -267,8 +267,8 @@ public class Graph<K, V> extends HashMap<K, V> {
 		edges.clear();
 		edgesInverted.clear();
 		visited.clear();
-		localFlags.clear();
-		globalFlags.clear();
+		clearLocalFlags();
+		clearGlobalFlags();
 		super.clear();
 	}
 
@@ -518,9 +518,9 @@ public class Graph<K, V> extends HashMap<K, V> {
 		});
 	}
 
-	public static <K, V> Graph<K, V> reverse(Graph<K, V> g) {
+	public static <K, M> Graph<K, M> reverse(Graph<K, M> g) {
 		if(g == null) return null;
-		Graph<K, V> gReversed = new Graph<K, V>();
+		Graph<K, M> gReversed = new Graph<K, M>();
 		g.forEach((key, value) -> {
 			gReversed.put(key, value);
 		});
@@ -535,5 +535,187 @@ public class Graph<K, V> extends HashMap<K, V> {
 			null
 		);
 		return gReversed;
+	}
+
+	/**
+	* Adds a new global flag to the graph. If the flag already
+	* exists, does nothing.
+	*
+	* @param name flag name.
+	* @param value initial flag value.
+	* @return true if the flag has been added, false if it already
+	* existed.
+	*/
+	public <V> boolean addGlobalFlag(String name, V value) {
+		if(globalFlags.containsKey(name))
+			return false;
+		globalFlags.put(name, new GlobalFlag<Object>(value));
+		return true;
+	}
+
+	/**
+	* Removes a global flag. If it doesn't exist, does nothing.
+	*
+	* @param name flag name.
+	* @return true if the flag has been removed, false if it
+	* didn't exist.
+	*/
+	public boolean removeGlobalFlag(String name) {
+		if(!globalFlags.containsKey(name))
+			return false;
+		globalFlags.remove(name);
+		return true;
+	}
+
+	/**
+	* Sets the global flag to a specified value. If the flag
+	* doesn't exist, does nothing.
+	*
+	* @param name flag name.
+	* @param value new flag value.
+	* @return true if the flag exists, false otherwise.
+	*/
+	public <V> boolean setGlobalFlag(String name, V value) {
+		if(!globalFlags.containsKey(name))
+			return false;
+		globalFlags.get(name).set(value);
+		return true;
+	}
+
+	/**
+	* Retrieves the value of the given global flag.
+	*
+	* @param name flag name.
+	* @return the value of the given global flag, null
+	* if the flag doesn't exist.
+	*/
+	public Object getGlobalFlag(String name) {
+		if(!globalFlags.containsKey(name))
+			return null;
+		return globalFlags.get(name).get();
+	}
+
+	/**
+	* Removes all global flags.
+	*/
+	public void clearGlobalFlags() {
+		globalFlags.clear();
+	}
+
+	/**
+	* Adds a new local flag to the graph. If the flag already
+	* exists, does nothing.
+	*
+	* @param name flag name.
+	* @param value initial flag value.
+	* @return true if the flag has been added, false if it already
+	* existed.
+	*/
+	public <V> boolean addLocalFlag(String name, V value) {
+		if(localFlags.containsKey(name))
+			return false;
+		localFlags.put(name, new LocalFlag<K, Object>(keySet(), value));
+		return true;
+	}
+
+	/**
+	* Removes a local flag. If it doesn't exist, does nothing.
+	*
+	* @param name flag name.
+	* @return true if the flag has been removed, false if it
+	* didn't exist.
+	*/
+	public boolean removeLocalFlag(String name) {
+		if(!localFlags.containsKey(name))
+			return false;
+		localFlags.remove(name);
+		return true;
+	}
+
+	/**
+	* Sets a local flag in the given vertex to a specific value.
+	* If either the flag or the vertex doesn't exist, does nothing.
+	*
+	* @param name flag name.
+	* @param label vertex label.
+	* @param value new flag value.
+	* @return true if the flag has been set, false if either the
+	* flag or the vertex doesn't exist.
+	*/
+	public <V> boolean setLocalFlag(String name, K label, V value) {
+		if(!localFlags.containsKey(name))
+			return false;
+		if(!containsKey(label))
+			return false;
+		localFlags.get(name).set(label, value);
+		return true;
+	}
+	
+	/**
+	* Retrieves the value of the given local flag.
+	*
+	* @param name flag name.
+	* @param label vertex label.
+	* @return the value of the given global flag, null
+	* if the flag or the vertex doesn't exist.
+	*/
+	public Object getLocalFlag(String name, K label) {
+		if(!localFlags.containsKey(name))
+			return null;
+		if(!containsKey(label))
+			return null;
+		return localFlags.get(name).get(label);
+	}
+
+	/**
+	* Returns all mappings of the given flag.
+	*
+	* @param name flag name.
+	* @return a set view of all the mappings.
+	*/
+	public Set<Map.Entry<K, Object>> getLocalFlag(String name) {
+		if(!localFlags.containsKey(name))
+			return null;
+		return localFlags.get(name).get();
+	}
+
+	/**
+	* Removes all local flags.
+	*/
+	public void clearLocalFlags() {
+		localFlags.clear();
+	}
+
+	/**
+	* Sets the values of all local flags to default 
+	* for a newly created vertex. If the vertex doesn't
+	* exist, does nothing.
+	*
+	* @param label vertex label.
+	* @return true if the values have been added, false if
+	* the vertex doesn't exist.
+	*/
+	private boolean extendLocalFlags(K label) {
+		if(!containsKey(label))
+			return false;
+		for(Map.Entry<String, LocalFlag<K, Object>> entry : localFlags.entrySet())
+			entry.getValue().extend(label);
+		return true;
+	}
+
+	/**
+	* Removes all flag values associated with a removed vertex.
+	* If the the vertex doesn't exist, does nothing.
+	*
+	* @param label vertex label.
+	* @return true if the values have been removed, false if
+	* the vertex didn't exist.
+	*/
+	private boolean shrinkLocalFlags(Object label) {
+		if(!containsKey(label))
+			return false;
+		for(Map.Entry<String, LocalFlag<K, Object>> entry : localFlags.entrySet())
+			entry.getValue().shrink(label);
+		return true;
 	}
 }
